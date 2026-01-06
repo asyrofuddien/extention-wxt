@@ -1,11 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { getVideoTranscript, askGemini, parseTimestamp } from '../../lib/aiService';
+import { getVideoTranscript, askAi, parseTimestamp, ChatMessage } from '../../lib/aiService';
 
-// Tipe untuk pesan chat
-type Message = {
-  role: 'user' | 'ai';
-  content: string;
-};
+// Tipe untuk pesan chat (alias dari ChatMessage)
+type Message = ChatMessage;
 
 function App() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -14,30 +11,48 @@ function App() {
   const [videoUrl, setVideoUrl] = useState('');
   const [transcript, setTranscript] = useState('');
 
-  // 1. Ambil URL saat Sidepanel dibuka
+  // 1. Ambil URL dan transcript, serta monitor perubahan URL
   useEffect(() => {
-    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+    const loadTranscript = async () => {
+      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
       const url = tabs[0]?.url;
-      console.log('Tab URL:', url);
-      if (url && url.includes('youtube.com/watch')) {
-        setVideoUrl(url);
-        const urlObj = new URL(url);
-        const videoId = urlObj.searchParams.get('v') || 'unknown';
 
-        // Auto-load transcript
-        setLoading(true);
-        getVideoTranscript(videoId).then((text) => {
-          setTranscript(text);
-          setMessages([
-            { role: 'ai', content: 'Halo! Saya sudah membaca transkrip video ini. Ada yang ingin ditanyakan?' },
-          ]);
-          setLoading(false);
-        });
-      } else {
+      if (url && url.includes('youtube.com/watch')) {
+        // Cek apakah URL berubah
+        if (url !== videoUrl) {
+          setVideoUrl(url);
+          const urlObj = new URL(url);
+          const videoId = urlObj.searchParams.get('v') || 'unknown';
+
+          // Auto-load transcript
+          setLoading(true);
+          try {
+            const text = await getVideoTranscript(videoId);
+            setTranscript(text);
+            setMessages([
+              { role: 'ai', content: 'Halo! Saya sudah membaca transkrip video ini. Ada yang ingin ditanyakan?' },
+            ]);
+          } catch (error) {
+            setMessages([{ role: 'ai', content: 'Gagal memuat transkrip video.' }]);
+          } finally {
+            setLoading(false);
+          }
+        }
+      } else if (url !== videoUrl) {
+        setVideoUrl(url || '');
+        setTranscript('');
         setMessages([{ role: 'ai', content: 'Buka video YouTube untuk memulai percakapan.' }]);
       }
-    });
-  }, []);
+    };
+
+    // Load pertama kali
+    loadTranscript();
+
+    // Polling untuk deteksi perubahan URL setiap 1 detik
+    const interval = setInterval(loadTranscript, 1000);
+
+    return () => clearInterval(interval);
+  }, [videoUrl]);
 
   // 2. Kirim Pesan ke AI
   const handleSend = async () => {
@@ -49,7 +64,15 @@ function App() {
     setLoading(true);
 
     try {
-      const response = await askGemini(userMsg, transcript);
+      // Kirim history tanpa pesan sistem awal
+      const history = messages.filter(
+        (msg) =>
+          msg.content !== 'Halo! Saya sudah membaca transkrip video ini. Ada yang ingin ditanyakan?' &&
+          msg.content !== 'Buka video YouTube untuk memulai percakapan.' &&
+          msg.content !== 'Gagal memuat transkrip video.'
+      );
+
+      const response = await askAi(userMsg, transcript, history);
       setMessages((prev) => [...prev, { role: 'ai', content: response }]);
     } catch (error) {
       setMessages((prev) => [...prev, { role: 'ai', content: 'Maaf, terjadi kesalahan.' }]);
@@ -75,6 +98,7 @@ function App() {
   // 4. Render Pesan dengan Deteksi Timestamp (Regex)
   const renderMessageContent = (text: string) => {
     // Regex untuk mendeteksi format MM:SS atau HH:MM:SS
+    if (!text) return 'Teks kosong';
     const timeRegex = /(\d{1,2}:\d{2}(?::\d{2})?)/g;
     const parts = text.split(timeRegex);
 

@@ -1,4 +1,10 @@
-// utils/aiService.ts
+const BACKEND_URL = 'http://localhost:5000';
+
+// Tipe untuk pesan chat
+export type ChatMessage = {
+  role: 'user' | 'ai';
+  content: string;
+};
 
 // Fungsi Helper untuk konversi waktu (MM:SS ke Detik)
 export const parseTimestamp = (timeStr: string): number => {
@@ -8,28 +14,51 @@ export const parseTimestamp = (timeStr: string): number => {
   return 0;
 };
 
-// 1. Mock Transkrip
 export const getVideoTranscript = async (videoId: string): Promise<string> => {
-  // Simulasi delay network
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/youtube/transcript`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ videoId }),
+    });
 
-  return `Ini adalah transkrip simulasi untuk video ID ${videoId}. 
-  Pada 00:30 pembicara menjelaskan tentang WXT Framework.
-  Kemudian pada 02:45 mereka membahas tentang Side Panel API.
-  Di akhir video pada 10:00 ada kesimpulan menarik.`;
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    // Sesuaikan 'data.transcript' dengan format response JSON dari backend Anda
+    // Misal backend return: { text: "..." } maka gunakan data.text
+    return data.transcript || 'Transkrip tidak ditemukan.';
+  } catch (error) {
+    console.error('Gagal mengambil transkrip:', error);
+    return 'Maaf, gagal mengambil transkrip dari server.';
+  }
 };
 
 // 2. Gemini API Placeholder
-export const askGemini = async (question: string, context: string): Promise<string> => {
-  console.log('Mengirim ke Gemini...', { question, context });
+export const askAi = async (
+  question: string,
+  context: string,
+  conversationHistory: ChatMessage[] = []
+): Promise<string> => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/youtube/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        question,
+        context,
+        conversationHistory,
+      }),
+    });
 
-  // Simulasi delay
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-
-  // Simulasi jawaban AI yang cerdas mengenali konteks
-  if (question.toLowerCase().includes('side panel')) {
-    return 'Berdasarkan video, Side Panel API dibahas mulai menit 02:45. Fitur ini memungkinkan ekstensi muncul di sisi browser tanpa menutupi konten utama.';
+    const data = await response.json();
+    return data.answer;
+  } catch (error) {
+    return 'Maaf, AI sedang tidak bisa menjawab saat ini.';
   }
-
-  return 'Saya menganalisa video ini. Menurut transkrip (mock), ini adalah video tutorial coding. Coba lompat ke 00:30 untuk intro.';
 };
