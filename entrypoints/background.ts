@@ -1,3 +1,4 @@
 export default defineBackground(() => {
-  console.log('Hello background!', { id: browser.runtime.id });
+  // Mengizinkan sidepanel terbuka saat ikon diklik
+  browser.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
 });
