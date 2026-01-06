@@ -7,7 +7,7 @@ export default defineConfig({
     permissions: ['sidePanel', 'activeTab', 'scripting'],
     host_permissions: [
       '*://*.youtube.com/*',
-      'http://localhost:5000/*', // Ganti dengan URL backend Anda
+      'http://146.190.107.186:3500/*', // Ganti dengan URL backend Anda
       // 'https://api.my-app.com/*' // Jika sudah deploy production
     ],
     action: {}, // Diperlukan untuk men-trigger sidepanel (opsional jika auto-open)
