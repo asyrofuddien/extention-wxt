@@ -10,7 +10,10 @@ const MAX_CACHED_TRANSCRIPTS = 5;
 const CACHE_PREFIX = 'transcript_cache_';
 const CACHE_INDEX_KEY = 'transcript_cache_index';
 
-export const getTranscriptCache = (videoId: string, language: string = 'id'): { transcript: string; title?: string } | null => {
+export const getTranscriptCache = (
+  videoId: string,
+  language: string = 'id'
+): { transcript: string; title?: string } | null => {
   try {
     const key = `${CACHE_PREFIX}${videoId}_${language}`;
     const cached = localStorage.getItem(key);
@@ -24,7 +27,12 @@ export const getTranscriptCache = (videoId: string, language: string = 'id'): { 
   return null;
 };
 
-export const saveTranscriptCache = (videoId: string, transcript: string, language: string = 'id', title: string = '') => {
+export const saveTranscriptCache = (
+  videoId: string,
+  transcript: string,
+  language: string = 'id',
+  title: string = ''
+) => {
   try {
     const key = `${CACHE_PREFIX}${videoId}_${language}`;
     const data: CachedTranscript = {

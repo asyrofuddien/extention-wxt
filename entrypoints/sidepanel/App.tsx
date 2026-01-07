@@ -100,7 +100,7 @@ function App() {
   return (
     <div className="flex flex-col h-screen bg-white">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-gradient-to-r from-red-600 to-orange-600 px-4 py-3.5 shadow-sm">
+      <div className="border-b border-gray-200 bg-linear-to-r from-red-600 to-orange-600 px-4 py-3.5 shadow-sm">
         <div className="flex items-center justify-between gap-3">
           <h1 className="text-lg font-bold text-white flex items-center gap-2">
             <Play className="w-5 h-5" /> Aforsy - YouTube AI Sidekick
@@ -121,7 +121,7 @@ function App() {
           <>
             {/* Video Title Header - Sticky/Floating */}
             {title && (
-              <div className="sticky top-0 z-10 bg-gradient-to-r from-red-50 to-orange-50 border-b-2 border-red-200 px-4 py-3 shadow-sm">
+              <div className="sticky top-0 z-10 bg-linear-to-r from-red-50 to-orange-50 border-b-2 border-red-200 px-4 py-3 shadow-sm">
                 <p className="text-xs font-medium text-red-600 uppercase tracking-wide mb-1">Title</p>
                 <p className="text-sm font-semibold text-gray-900 line-clamp-2">{title}</p>
               </div>

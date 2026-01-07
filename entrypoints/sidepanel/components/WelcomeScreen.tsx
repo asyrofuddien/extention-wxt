@@ -45,11 +45,11 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ isYouTubeVideo, er
   }
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center bg-gradient-to-br from-red-50 via-white to-orange-50 p-4">
+    <div className="flex-1 flex flex-col items-center justify-center bg-linear-to-br from-red-50 via-white to-orange-50 p-4">
       <div className="text-center max-w-sm">
         {/* Icon */}
         <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-red-500 to-orange-500 rounded-full shadow-lg">
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-linear-to-br from-red-500 to-orange-500 rounded-full shadow-lg">
             {isYouTubeVideo ? (
               <Loader className="w-12 h-12 text-white animate-spin" />
             ) : (

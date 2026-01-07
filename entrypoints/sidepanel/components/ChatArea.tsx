@@ -82,31 +82,31 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ messages, videoTitle, loadin
             <p className="text-gray-500 text-sm">Mulai percakapan dengan AI tentang video ini...</p>
           </div>
         ) : (
-        messages.map((msg, idx) => (
-          <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            {msg.role === 'user' ? (
-              // User Message Bubble
-              <div className="bg-blue-600 text-white rounded-3xl rounded-tr-sm px-4 py-3 max-w-xs lg:max-w-md break-words shadow-md">
-                <p className="text-sm leading-relaxed">{msg.content}</p>
-              </div>
-            ) : (
-              // AI Message Bubble dengan timestamp button
-              <div className="bg-white border border-gray-300 text-gray-900 rounded-3xl rounded-bl-sm px-4 py-3 max-w-xs lg:max-w-md break-words shadow-md">
-                <p className="text-sm leading-relaxed">{renderMessageContent(msg.content)}</p>
-              </div>
-            )}
+          messages.map((msg, idx) => (
+            <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              {msg.role === 'user' ? (
+                // User Message Bubble
+                <div className="bg-blue-600 text-white rounded-3xl rounded-tr-sm px-4 py-3 max-w-xs lg:max-w-md wrap-break-word shadow-md">
+                  <p className="text-sm leading-relaxed">{msg.content}</p>
+                </div>
+              ) : (
+                // AI Message Bubble dengan timestamp button
+                <div className="bg-white border border-gray-300 text-gray-900 rounded-3xl rounded-bl-sm px-4 py-3 max-w-xs lg:max-w-md wrap-break-word shadow-md">
+                  <p className="text-sm leading-relaxed">{renderMessageContent(msg.content)}</p>
+                </div>
+              )}
+            </div>
+          ))
+        )}
+
+        {/* Loading Bubble */}
+        {loading && (
+          <div className="flex justify-start">
+            <LoadingBubble speed="normal" />
           </div>
-        ))
-      )}
+        )}
 
-      {/* Loading Bubble */}
-      {loading && (
-        <div className="flex justify-start">
-          <LoadingBubble speed="normal" />
-        </div>
-      )}
-
-      <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} />
       </div>
     </div>
   );
