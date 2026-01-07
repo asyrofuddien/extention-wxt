@@ -111,7 +111,7 @@ function App() {
       // Kirim pesan ke Content Script
       const tabs = await browser.tabs.query({ active: true, currentWindow: true });
       console.log('Active tabs:', tabs);
-      
+
       const [tab] = tabs;
       if (tab?.id) {
         console.log('Sending message to tab:', tab.id);
