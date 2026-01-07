@@ -1,5 +1,6 @@
 // const BACKEND_URL = 'http://146.190.107.186:3500';
-const BACKEND_URL = 'http://localhost:8001';
+// const BACKEND_URL = 'http://localhost:8001';
+const BACKEND_URL = 'http://146.190.107.186:9000';
 // const BACKEND_URL = 'https://social-ghosts-know.loca.lt';
 
 // Tipe untuk pesan chat

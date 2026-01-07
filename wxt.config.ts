@@ -4,6 +4,8 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   manifest: {
     name: 'Aforsy - YouTube AI Sidekick',
+    version: '0.0.1',
+    description: 'Your smart YouTube AI companion. Created by Muhammad Asyrofuddien.',
     permissions: ['sidePanel', 'activeTab', 'scripting'],
     host_permissions: [
       '*://*.youtube.com/*',

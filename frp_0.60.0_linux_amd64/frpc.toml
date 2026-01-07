@@ -1,0 +1,10 @@
+serverAddr = "146.190.107.186"
+serverPort = 7000
+auth.token = "Atopsehat1122@" # Harus sama dengan yang di server
+
+[[proxies]]
+name = "web-soap-vmware"
+type = "tcp"
+localIP = "192.168.5.1"
+localPort = 8001
+remotePort = 9000

@@ -132,6 +132,11 @@ function App() {
           </>
         )}
       </div>
+
+      {/* Credit Footer */}
+      <div className="border-t border-gray-200 bg-gray-50 px-4 py-2 text-center">
+        <p className="text-xs text-gray-500">Created by Muhammad Asyrofuddien</p>
+      </div>
     </div>
   );
 }
