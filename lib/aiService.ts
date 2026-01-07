@@ -1,8 +1,9 @@
-const BACKEND_URL = 'http://146.190.107.186:3500';
+// const BACKEND_URL = 'http://146.190.107.186:3500';
+const BACKEND_URL = 'http://localhost:5000';
 
 // Tipe untuk pesan chat
 export type ChatMessage = {
-  role: 'user' | 'ai';
+  role: 'user' | 'system';
   content: string;
 };
 
