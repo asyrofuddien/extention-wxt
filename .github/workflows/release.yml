@@ -48,6 +48,41 @@ jobs:
       - name: Create zip
         run: pnpm zip
 
+      - name: Repackage zip with folder structure
+        run: |
+          cd .output
+
+          # Find the original zip
+          ORIGINAL_ZIP=$(ls wxt-react-starter-*-chrome.zip | head -1)
+          VERSION="${ORIGINAL_ZIP#wxt-react-starter-}"
+          VERSION="${VERSION%-chrome.zip}"
+
+          # Create temp directory for repacking
+          mkdir -p temp_extract
+          cd temp_extract
+
+          # Extract original zip
+          unzip -q "../$ORIGINAL_ZIP"
+
+          # Go back to .output
+          cd ..
+
+          # Remove original zip
+          rm "$ORIGINAL_ZIP"
+
+          # Create new zip with folder structure
+          FOLDER_NAME="aforsy-youtube-sidekick-v.$VERSION"
+          mkdir -p "$FOLDER_NAME"
+
+          # Move extracted contents into folder
+          mv temp_extract/* "$FOLDER_NAME/" || true
+
+          # Create final zip
+          zip -r "wxt-react-starter-$VERSION-chrome.zip" "$FOLDER_NAME"
+
+          # Cleanup
+          rm -rf temp_extract "$FOLDER_NAME"
+
       - name: List output files
         run: ls -la .output/
 
