@@ -8,6 +8,9 @@ on:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
 
     steps:
       - uses: actions/checkout@v4
@@ -67,15 +70,15 @@ jobs:
         run: |
           ZIP_FILE=$(ls .output/wxt-react-starter-*-chrome.zip | head -1)
           RENAMED_ZIP="aforsy-youtube-sidekick-v.${{ steps.version.outputs.VERSION }}.zip"
-          
+
           # Rename the zip file
           mv "$ZIP_FILE" "$RENAMED_ZIP"
-          
+
           # Create release
           gh release create v.${{ steps.version.outputs.VERSION }} \
             --title "Release v.${{ steps.version.outputs.VERSION }}" \
             --notes "Aforsy - YouTube AI Sidekick Extension v.${{ steps.version.outputs.VERSION }}" || true
-          
+
           # Upload renamed file
           gh release upload v.${{ steps.version.outputs.VERSION }} \
             "$RENAMED_ZIP" \
