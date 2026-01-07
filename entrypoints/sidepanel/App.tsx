@@ -19,6 +19,7 @@ function App() {
   // Hook untuk handle transcript loading
   const {
     transcript,
+    title,
     loading: transcriptLoading,
     videoUrl,
     videoId,
@@ -30,12 +31,19 @@ function App() {
   } = useTranscript();
 
   // Hook untuk manage per-video chat history
-  const { messages, setMessages, addMessage, clearHistory } = useChatHistory(videoId);
+  const { messages, setMessages, addMessage, clearHistory, setTitle: setChatTitle } = useChatHistory(videoId);
 
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
+
+  // Update chat title when transcript title changes
+  useEffect(() => {
+    if (title && videoId) {
+      setChatTitle(title);
+    }
+  }, [title, videoId, setChatTitle]);
 
   // Hapus: Reset ketika video berubah - sudah di-handle di useChatHistory
 
@@ -111,11 +119,25 @@ function App() {
           <WelcomeScreen isYouTubeVideo={isLoadingTranscript} />
         ) : (
           <>
+            {/* Video Title Header - Sticky/Floating */}
+            {title && (
+              <div className="sticky top-0 z-10 bg-gradient-to-r from-red-50 to-orange-50 border-b-2 border-red-200 px-4 py-3 shadow-sm">
+                <p className="text-xs font-medium text-red-600 uppercase tracking-wide mb-1">Title</p>
+                <p className="text-sm font-semibold text-gray-900 line-clamp-2">{title}</p>
+              </div>
+            )}
+
             {/* Show Suggested Prompts if no messages yet, otherwise show Chat Area */}
             {messages.length === 0 ? (
               <SuggestedPrompts onSelectPrompt={handleSelectPrompt} />
             ) : (
-              <ChatArea messages={messages} loading={loading} onJump={handleJump} messagesEndRef={messagesEndRef} />
+              <ChatArea
+                messages={messages}
+                videoTitle={title}
+                loading={loading}
+                onJump={handleJump}
+                messagesEndRef={messagesEndRef}
+              />
             )}
 
             {/* Input Area */}

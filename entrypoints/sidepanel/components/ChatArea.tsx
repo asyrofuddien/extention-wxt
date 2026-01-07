@@ -8,12 +8,13 @@ interface ChatBubble extends ChatMessage {
 
 interface ChatAreaProps {
   messages: ChatBubble[];
+  videoTitle?: string;
   loading: boolean;
   onJump: (timestamp: string) => void;
   messagesEndRef: React.RefObject<HTMLDivElement>;
 }
 
-export const ChatArea: React.FC<ChatAreaProps> = ({ messages, loading, onJump, messagesEndRef }) => {
+export const ChatArea: React.FC<ChatAreaProps> = ({ messages, videoTitle, loading, onJump, messagesEndRef }) => {
   // Render message content dengan timestamp detection - simple & reliable
   const renderMessageContent = (text: string) => {
     // Match format: [HH:MM:SS], HH:MM:SS, dan range [HH:MM:SS] - [HH:MM:SS]
@@ -73,12 +74,14 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ messages, loading, onJump, m
   };
 
   return (
-    <div className="flex-1 overflow-y-auto flex flex-col gap-3 p-4">
-      {messages.length === 0 ? (
-        <div className="flex items-center justify-center h-full text-center">
-          <p className="text-gray-500 text-sm">Mulai percakapan dengan AI tentang video ini...</p>
-        </div>
-      ) : (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Chat Messages */}
+      <div className="flex-1 overflow-y-auto flex flex-col gap-3 p-4">
+        {messages.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-center">
+            <p className="text-gray-500 text-sm">Mulai percakapan dengan AI tentang video ini...</p>
+          </div>
+        ) : (
         messages.map((msg, idx) => (
           <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             {msg.role === 'user' ? (
@@ -104,6 +107,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ messages, loading, onJump, m
       )}
 
       <div ref={messagesEndRef} />
+      </div>
     </div>
   );
 };

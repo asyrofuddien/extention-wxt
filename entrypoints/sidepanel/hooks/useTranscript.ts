@@ -4,6 +4,7 @@ import { getTranscriptCache, saveTranscriptCache } from '../lib/transcriptCache'
 
 interface UseTranscriptReturn {
   transcript: string;
+  title: string;
   loading: boolean;
   error: string | null;
   videoUrl: string;
@@ -16,6 +17,7 @@ interface UseTranscriptReturn {
 
 export const useTranscript = (): UseTranscriptReturn => {
   const [transcript, setTranscript] = useState('');
+  const [title, setTitle] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState('');
@@ -56,10 +58,11 @@ export const useTranscript = (): UseTranscriptReturn => {
           setError(null);
 
           // Cek cache terlebih dahulu
-          const cachedTranscript = getTranscriptCache(id, language);
-          if (cachedTranscript && !forceLoad) {
-            // Gunakan transcript dari cache dengan loading animation brief
-            setTranscript(cachedTranscript);
+          const cachedData = getTranscriptCache(id, language);
+          if (cachedData && !forceLoad) {
+            // Gunakan transcript dan title dari cache dengan loading animation brief
+            setTranscript(cachedData.transcript);
+            setTitle(cachedData.title || '');
             setError(null);
             // Show loading state briefly even for cached transcripts (better UX)
             setTimeout(() => setLoading(false), 300);
@@ -68,11 +71,12 @@ export const useTranscript = (): UseTranscriptReturn => {
 
           // Jika tidak ada di cache atau forceLoad, load dari backend dengan lang parameter
           try {
-            const text = await getVideoTranscript(id, language);
-            setTranscript(text);
+            const response = await getVideoTranscript(id, language);
+            setTranscript(response.transcript);
+            setTitle(response.title || '');
             setError(null);
-            // Save ke cache setelah berhasil load dari backend
-            saveTranscriptCache(id, text, language);
+            // Save ke cache setelah berhasil load dari backend (include title)
+            saveTranscriptCache(id, response.transcript, language, response.title || '');
           } catch (err) {
             setError('Gagal memuat transkrip. Klik "Coba Lagi" untuk mencoba kembali.');
             setTranscript('');
@@ -81,6 +85,7 @@ export const useTranscript = (): UseTranscriptReturn => {
           }
         } else {
           setTranscript('');
+          setTitle('');
           setVideoId(null);
           setError(null);
         }
@@ -97,7 +102,27 @@ export const useTranscript = (): UseTranscriptReturn => {
   }, [videoUrl, language]); // Re-load saat language berubah
 
   useEffect(() => {
-    // Deteksi perubahan URL tab
+    // Deteksi perubahan URL tab dengan listener
+    const handleTabUpdate = (tabId: number, changeInfo: any, tab: any) => {
+      if (changeInfo.url && tab.active) {
+        setVideoUrl(changeInfo.url);
+      }
+    };
+
+    const handleTabActivated = async () => {
+      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+      const currentUrl = tabs[0]?.url || '';
+      if (currentUrl && currentUrl !== videoUrl) {
+        setVideoUrl(currentUrl);
+      }
+    };
+
+    // Listen untuk update URL
+    browser.tabs.onUpdated.addListener(handleTabUpdate);
+    // Listen untuk perubahan tab aktif
+    browser.tabs.onActivated.addListener(handleTabActivated);
+
+    // Fallback polling jika listener tidak cukup
     const checkUrl = async () => {
       const tabs = await browser.tabs.query({ active: true, currentWindow: true });
       const currentUrl = tabs[0]?.url || '';
@@ -106,12 +131,18 @@ export const useTranscript = (): UseTranscriptReturn => {
       }
     };
 
-    const interval = setInterval(checkUrl, 1500);
-    return () => clearInterval(interval);
+    const interval = setInterval(checkUrl, 800);
+
+    return () => {
+      browser.tabs.onUpdated.removeListener(handleTabUpdate);
+      browser.tabs.onActivated.removeListener(handleTabActivated);
+      clearInterval(interval);
+    };
   }, [videoUrl]);
 
   const reset = () => {
     setTranscript('');
+    setTitle('');
     setVideoUrl('');
     setVideoId(null);
     setError(null);
@@ -135,6 +166,7 @@ export const useTranscript = (): UseTranscriptReturn => {
 
   return {
     transcript,
+    title,
     loading,
     error,
     videoUrl,

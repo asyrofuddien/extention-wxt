@@ -17,7 +17,12 @@ export const parseTimestamp = (timeStr: string): number => {
   return 0;
 };
 
-export const getVideoTranscript = async (videoId: string, language: string = 'id'): Promise<string> => {
+export interface TranscriptResponse {
+  transcript: string;
+  title?: string;
+}
+
+export const getVideoTranscript = async (videoId: string, language: string = 'id'): Promise<TranscriptResponse> => {
   const response = await fetch(`${BACKEND_URL}/api/youtube/transcript`, {
     method: 'POST',
     headers: {
@@ -36,7 +41,10 @@ export const getVideoTranscript = async (videoId: string, language: string = 'id
     throw new Error('Transkrip tidak ditemukan untuk video ini.');
   }
 
-  return data.transcript;
+  return {
+    transcript: data.transcript,
+    title: data.title || '',
+  };
 };
 
 // 2. Gemini API Placeholder

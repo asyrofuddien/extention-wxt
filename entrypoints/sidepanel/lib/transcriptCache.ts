@@ -2,6 +2,7 @@ interface CachedTranscript {
   videoId: string;
   language: string;
   transcript: string;
+  title?: string;
   timestamp: number;
 }
 
@@ -9,13 +10,13 @@ const MAX_CACHED_TRANSCRIPTS = 5;
 const CACHE_PREFIX = 'transcript_cache_';
 const CACHE_INDEX_KEY = 'transcript_cache_index';
 
-export const getTranscriptCache = (videoId: string, language: string = 'id'): string | null => {
+export const getTranscriptCache = (videoId: string, language: string = 'id'): { transcript: string; title?: string } | null => {
   try {
     const key = `${CACHE_PREFIX}${videoId}_${language}`;
     const cached = localStorage.getItem(key);
     if (cached) {
       const data = JSON.parse(cached) as CachedTranscript;
-      return data.transcript;
+      return { transcript: data.transcript, title: data.title };
     }
   } catch (error) {
     console.error('Error reading transcript cache:', error);
@@ -23,13 +24,14 @@ export const getTranscriptCache = (videoId: string, language: string = 'id'): st
   return null;
 };
 
-export const saveTranscriptCache = (videoId: string, transcript: string, language: string = 'id') => {
+export const saveTranscriptCache = (videoId: string, transcript: string, language: string = 'id', title: string = '') => {
   try {
     const key = `${CACHE_PREFIX}${videoId}_${language}`;
     const data: CachedTranscript = {
       videoId,
       language,
       transcript,
+      title: title || '',
       timestamp: Date.now(),
     };
     localStorage.setItem(key, JSON.stringify(data));
