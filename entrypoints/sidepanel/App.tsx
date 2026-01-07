@@ -9,13 +9,18 @@ import { LanguageSelector } from './components/LanguageSelector';
 import { useTranscript } from './hooks/useTranscript';
 import { useChatHistory } from './hooks/useChatHistory';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 
 type Message = ChatMessage;
 
 function App() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showHeader, setShowHeader] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
+  const mainContentRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
 
   // Hook untuk handle transcript loading
   const {
@@ -38,6 +43,30 @@ function App() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
+
+  // Handle scroll to show/hide header
+  useEffect(() => {
+    const handleScroll = (e: Event) => {
+      const element = e.target as HTMLDivElement;
+      const currentScrollY = element.scrollTop;
+
+      if (currentScrollY > lastScrollY) {
+        // Scrolling down
+        setShowHeader(false);
+      } else {
+        // Scrolling up
+        setShowHeader(true);
+      }
+
+      setLastScrollY(currentScrollY);
+    };
+
+    const mainContent = mainContentRef.current;
+    if (mainContent) {
+      mainContent.addEventListener('scroll', handleScroll);
+      return () => mainContent.removeEventListener('scroll', handleScroll);
+    }
+  }, [lastScrollY]);
 
   // Update chat title when transcript title changes
   useEffect(() => {
@@ -74,15 +103,50 @@ function App() {
 
   // 3. Fungsi Jump to Timestamp
   const handleJump = async (timeStr: string) => {
+    console.log('handleJump called with:', timeStr);
     const seconds = parseTimestamp(timeStr);
+    console.log('Parsed seconds:', seconds);
 
-    // Kirim pesan ke Content Script
-    const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-    if (tab?.id) {
-      browser.tabs.sendMessage(tab.id, {
-        action: 'JUMP_TO_TIMESTAMP',
-        seconds,
-      });
+    try {
+      // Kirim pesan ke Content Script
+      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+      console.log('Active tabs:', tabs);
+      
+      const [tab] = tabs;
+      if (tab?.id) {
+        console.log('Sending message to tab:', tab.id);
+        try {
+          await browser.tabs.sendMessage(tab.id, {
+            action: 'JUMP_TO_TIMESTAMP',
+            seconds,
+          });
+          console.log('Message sent successfully');
+        } catch (sendError: any) {
+          console.error('Send message error:', sendError.message);
+          // Fallback: Try using scripting API to execute code directly
+          console.log('Attempting fallback with executeScript...');
+          try {
+            await (browser.scripting as any).executeScript({
+              target: { tabId: tab.id },
+              function: (seconds: number) => {
+                const video = document.querySelector('video');
+                if (video) {
+                  video.currentTime = seconds;
+                  video.play();
+                  console.log('Script executed - jumped to:', seconds);
+                }
+              },
+              args: [seconds],
+            });
+          } catch (scriptError) {
+            console.error('Scripting API error:', scriptError);
+          }
+        }
+      } else {
+        console.error('No active tab found');
+      }
+    } catch (error) {
+      console.error('Error in handleJump:', error);
     }
   };
 
@@ -99,21 +163,23 @@ function App() {
   const canChat = hasTranscript && !isLoadingTranscript;
 
   return (
-    <div className="flex flex-col h-screen bg-white">
-      {/* Header */}
-      <div className="border-b border-gray-200 bg-linear-to-r from-red-600 to-orange-600 px-4 py-3.5 shadow-sm">
-        <div className="flex items-center justify-between gap-3">
-          <h1 className="text-lg font-bold text-white flex items-center gap-2">
-            <Play className="w-5 h-5" /> Aforsy - YouTube AI Sidekick
-          </h1>
-          <LanguageSelector currentLang={language} onLanguageChange={setLanguage} />
-          <Button>Click Me</Button>
-        </div>
-        <p className="text-red-100 text-xs mt-1">Your smart video companion</p>
+    <div className="flex flex-col h-screen bg-background">
+      {/* Header - Hide on scroll */}
+      <div className={`transition-all duration-300 overflow-hidden ${showHeader ? 'h-auto' : 'h-0'}`}>
+        <Card className="border-0 rounded-none bg-primary px-4 py-2.5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <img src="/icon/16.png" alt="Aforsy" className="w-6 h-6" />
+              <h1 className="text-sm font-bold text-primary-foreground">Aforsy - YouTube AI Sidekick</h1>
+            </div>
+            <LanguageSelector currentLang={language} onLanguageChange={setLanguage} />
+          </div>
+        </Card>
+        <Separator className="h-0.5" />
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div ref={mainContentRef} className="flex-1 flex flex-col overflow-hidden">
         {/* Welcome Screen jika error ada */}
         {transcriptError ? (
           <WelcomeScreen isYouTubeVideo={true} error={transcriptError} onRetry={retryTranscript} />
@@ -123,10 +189,13 @@ function App() {
           <>
             {/* Video Title Header - Sticky/Floating */}
             {title && (
-              <div className="sticky top-0 z-10 bg-linear-to-r from-red-50 to-orange-50 border-b-2 border-red-200 px-4 py-3 shadow-sm">
-                <p className="text-xs font-medium text-red-600 uppercase tracking-wide mb-1">Title</p>
-                <p className="text-sm font-semibold text-gray-900 line-clamp-2">{title}</p>
-              </div>
+              <>
+                <Card className="sticky top-0 z-10 rounded-none border-0 px-4 py-3 shadow-sm bg-secondary/20">
+                  <p className="text-xs font-medium text-secondary-foreground uppercase tracking-wide mb-1">Title</p>
+                  <p className="text-sm font-semibold text-foreground line-clamp-2">{title}</p>
+                </Card>
+                <Separator className="h-0.5" />
+              </>
             )}
 
             {/* Show Suggested Prompts if no messages yet, otherwise show Chat Area */}
@@ -143,7 +212,8 @@ function App() {
             )}
 
             {/* Input Area */}
-            <div className="border-t border-gray-200 bg-white p-4">
+            <Separator className="h-0.5" />
+            <Card className="rounded-none border-0 bg-secondary p-4 shadow-sm">
               <InputArea
                 input={input}
                 loading={loading}
@@ -152,15 +222,16 @@ function App() {
                 onSend={handleSend}
                 onReset={handleReset}
               />
-            </div>
+            </Card>
           </>
         )}
       </div>
 
       {/* Credit Footer */}
-      <div className="border-t border-gray-200 bg-gray-50 px-4 py-2 text-center">
-        <p className="text-xs text-gray-500">Created by Muhammad Asyrofuddien</p>
-      </div>
+      <Separator className="h-0.5" />
+      <Card className="rounded-none border-0 bg-secondary/30 px-4 py-2 text-center shadow-sm">
+        <p className="text-xs text-muted-foreground">Created by Muhammad Asyrofuddien</p>
+      </Card>
     </div>
   );
 }

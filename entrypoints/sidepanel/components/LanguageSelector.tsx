@@ -1,5 +1,5 @@
 import React from 'react';
-import { Globe } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface LanguageSelectorProps {
   currentLang: string;
@@ -8,29 +8,29 @@ interface LanguageSelectorProps {
 
 export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ currentLang, onLanguageChange }) => {
   const languages = [
-    { code: 'id', name: 'Indonesian' },
-    { code: 'en', name: 'English' },
-    { code: 'es', name: 'Spanish' },
-    { code: 'fr', name: 'French' },
-    { code: 'de', name: 'German' },
-    { code: 'ja', name: 'Japanese' },
-    { code: 'zh', name: 'Chinese' },
+    { code: 'id', name: 'Indonesian', flag: '🇮🇩' },
+    { code: 'en', name: 'English', flag: '🇬🇧' },
+    { code: 'es', name: 'Spanish', flag: '🇪🇸' },
+    { code: 'fr', name: 'French', flag: '🇫🇷' },
+    { code: 'de', name: 'German', flag: '🇩🇪' },
+    { code: 'ja', name: 'Japanese', flag: '🇯🇵' },
+    { code: 'zh', name: 'Chinese', flag: '🇨🇳' },
   ];
 
+  const currentLanguage = languages.find((lang) => lang.code === currentLang);
+
   return (
-    <div className="flex items-center gap-2">
-      <Globe className="w-4 h-4 text-gray-600" />
-      <select
-        value={currentLang}
-        onChange={(e) => onLanguageChange(e.target.value)}
-        className="text-sm px-2 py-1 border border-gray-300 rounded bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer"
-      >
+    <Select value={currentLang} onValueChange={onLanguageChange}>
+      <SelectTrigger className="w-auto border-0 bg-secondary text-base p-4">
+        <SelectValue>{currentLanguage?.flag}</SelectValue>
+      </SelectTrigger>
+      <SelectContent>
         {languages.map((lang) => (
-          <option key={lang.code} value={lang.code}>
-            {lang.name}
-          </option>
+          <SelectItem key={lang.code} value={lang.code}>
+            {lang.flag} {lang.name}
+          </SelectItem>
         ))}
-      </select>
-    </div>
+      </SelectContent>
+    </Select>
   );
 };

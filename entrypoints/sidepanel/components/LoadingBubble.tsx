@@ -12,17 +12,17 @@ export const LoadingBubble: React.FC<LoadingBubbleProps> = ({ speed = 'normal' }
   };
 
   return (
-    <div className="flex gap-2 p-3 bg-white border border-gray-300 rounded-3xl rounded-bl-sm max-w-fit shadow-md">
+    <div className="flex gap-2 p-3 bg-popover border border-border rounded-3xl rounded-bl-sm max-w-fit shadow-md">
       <div
-        className={`w-3 h-3 bg-gray-600 rounded-full animate-bounce ${speedMap[speed]}`}
+        className={`w-3 h-3 bg-primary rounded-full animate-bounce ${speedMap[speed]}`}
         style={{ animationDelay: '0s' }}
       ></div>
       <div
-        className={`w-3 h-3 bg-gray-600 rounded-full animate-bounce ${speedMap[speed]}`}
+        className={`w-3 h-3 bg-primary rounded-full animate-bounce ${speedMap[speed]}`}
         style={{ animationDelay: '0.15s' }}
       ></div>
       <div
-        className={`w-3 h-3 bg-gray-600 rounded-full animate-bounce ${speedMap[speed]}`}
+        className={`w-3 h-3 bg-primary rounded-full animate-bounce ${speedMap[speed]}`}
         style={{ animationDelay: '0.3s' }}
       ></div>
     </div>

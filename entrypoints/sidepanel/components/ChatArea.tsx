@@ -38,8 +38,12 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ messages, videoTitle, loadin
         parts.push(
           <button
             key={`ts-${match.index}`}
-            onClick={() => onJump(firstTimestamp)}
-            className="inline-block text-blue-600 hover:text-blue-700 hover:underline font-semibold bg-blue-100 hover:bg-blue-200 px-2 py-0.5 rounded transition-colors duration-200 mx-0.5 hover:cursor-pointer"
+            onClick={() => {
+              console.log('Jump to:', firstTimestamp);
+              onJump(firstTimestamp);
+            }}
+            className="inline-block bg-secondary text-secondary-foreground hover:bg-secondary/80 px-2 py-1 rounded text-xs font-medium cursor-pointer transition-colors flex-shrink-0"
+            type="button"
           >
             [{firstTimestamp}]
           </button>
@@ -53,8 +57,12 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ messages, videoTitle, loadin
           parts.push(
             <button
               key={`ts-${match.index}-2`}
-              onClick={() => onJump(secondTimestamp)}
-              className="inline-block text-blue-600 hover:text-blue-700 hover:underline font-semibold bg-blue-100 hover:bg-blue-200 px-2 py-0.5 rounded transition-colors duration-200 mx-0.5 hover:cursor-pointer"
+              onClick={() => {
+                console.log('Jump to:', secondTimestamp);
+                onJump(secondTimestamp);
+              }}
+              className="inline-block bg-secondary text-secondary-foreground hover:bg-secondary/80 px-2 py-1 rounded text-xs font-medium cursor-pointer transition-colors flex-shrink-0"
+              type="button"
             >
               [{secondTimestamp}]
             </button>
@@ -70,7 +78,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ messages, videoTitle, loadin
       parts.push(text.substring(lastIndex));
     }
 
-    return parts;
+    // Map parts to ensure proper rendering with keys
+    return parts.map((part, idx) => (typeof part === 'string' ? <span key={`text-${idx}`}>{part}</span> : part));
   };
 
   return (
@@ -79,20 +88,22 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ messages, videoTitle, loadin
       <div className="flex-1 overflow-y-auto flex flex-col gap-3 p-4">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-center">
-            <p className="text-gray-500 text-sm">Mulai percakapan dengan AI tentang video ini...</p>
+            <p className="text-muted-foreground text-sm">Mulai percakapan dengan AI tentang video ini...</p>
           </div>
         ) : (
           messages.map((msg, idx) => (
             <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.role === 'user' ? (
                 // User Message Bubble
-                <div className="bg-blue-600 text-white rounded-3xl rounded-tr-sm px-4 py-3 max-w-xs lg:max-w-md wrap-break-word shadow-md">
+                <div className="bg-primary text-primary-foreground rounded-3xl rounded-tr-sm px-4 py-3 max-w-xs lg:max-w-md wrap-break-word shadow-md">
                   <p className="text-sm leading-relaxed">{msg.content}</p>
                 </div>
               ) : (
                 // AI Message Bubble dengan timestamp button
-                <div className="bg-white border border-gray-300 text-gray-900 rounded-3xl rounded-bl-sm px-4 py-3 max-w-xs lg:max-w-md wrap-break-word shadow-md">
-                  <p className="text-sm leading-relaxed">{renderMessageContent(msg.content)}</p>
+                <div className="bg-popover border border-border text-foreground rounded-3xl rounded-bl-sm px-4 py-3 max-w-xs lg:max-w-md shadow-md">
+                  <div className="text-sm leading-relaxed flex flex-wrap items-start gap-1">
+                    {renderMessageContent(msg.content)}
+                  </div>
                 </div>
               )}
             </div>
