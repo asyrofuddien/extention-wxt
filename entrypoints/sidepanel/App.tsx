@@ -8,6 +8,7 @@ import { SuggestedPrompts } from './components/SuggestedPrompts';
 import { LanguageSelector } from './components/LanguageSelector';
 import { useTranscript } from './hooks/useTranscript';
 import { useChatHistory } from './hooks/useChatHistory';
+import { Button } from '@/components/ui/button';
 
 type Message = ChatMessage;
 
@@ -106,6 +107,7 @@ function App() {
             <Play className="w-5 h-5" /> Aforsy - YouTube AI Sidekick
           </h1>
           <LanguageSelector currentLang={language} onLanguageChange={setLanguage} />
+          <Button>Click Me</Button>
         </div>
         <p className="text-red-100 text-xs mt-1">Your smart video companion</p>
       </div>
