@@ -2,7 +2,7 @@ name: Build and Release Extension
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [main, dev]
   workflow_dispatch:
 
 jobs:
@@ -45,6 +45,9 @@ jobs:
       - name: Create zip
         run: pnpm zip
 
+      - name: List output files
+        run: ls -la .output/
+
       - name: Get version from package.json
         id: version
         run: |
@@ -58,11 +61,22 @@ jobs:
           gh release delete v.${{ steps.version.outputs.VERSION }} --yes || true
         continue-on-error: true
 
-      - name: Create Release
+      - name: Create Release and Upload
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          ZIP_FILE=$(ls .output/wxt-react-starter-*-chrome.zip | head -1)
+          RENAMED_ZIP="aforsy-youtube-sidekick-v.${{ steps.version.outputs.VERSION }}.zip"
+          
+          # Rename the zip file
+          mv "$ZIP_FILE" "$RENAMED_ZIP"
+          
+          # Create release
           gh release create v.${{ steps.version.outputs.VERSION }} \
-            .output/wxt-react-starter-${{ steps.version.outputs.VERSION }}-chrome.zip#aforsy-youtube-sidekick-v.${{ steps.version.outputs.VERSION }}.zip \
             --title "Release v.${{ steps.version.outputs.VERSION }}" \
-            --notes "Aforsy - YouTube AI Sidekick Extension v.${{ steps.version.outputs.VERSION }}"
+            --notes "Aforsy - YouTube AI Sidekick Extension v.${{ steps.version.outputs.VERSION }}" || true
+          
+          # Upload renamed file
+          gh release upload v.${{ steps.version.outputs.VERSION }} \
+            "$RENAMED_ZIP" \
+            --clobber
