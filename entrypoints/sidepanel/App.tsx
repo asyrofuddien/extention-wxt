@@ -4,6 +4,7 @@ import { askAi, parseTimestamp, ChatMessage } from '../../lib/aiService';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { ChatArea } from './components/ChatArea';
 import { InputArea } from './components/InputArea';
+import { SuggestedPrompts } from './components/SuggestedPrompts';
 import { useTranscript } from './hooks/useTranscript';
 
 type Message = ChatMessage;
@@ -15,7 +16,15 @@ function App() {
   const messagesEndRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
 
   // Hook untuk handle transcript loading
-  const { transcript, loading: transcriptLoading, videoUrl, videoId, reset: resetTranscript } = useTranscript();
+  const {
+    transcript,
+    loading: transcriptLoading,
+    videoUrl,
+    videoId,
+    error: transcriptError,
+    reset: resetTranscript,
+    retry: retryTranscript,
+  } = useTranscript();
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -44,6 +53,11 @@ function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handle suggested prompt selection
+  const handleSelectPrompt = (prompt: string) => {
+    setInput(prompt);
   };
 
   // 3. Fungsi Jump to Timestamp
@@ -84,13 +98,19 @@ function App() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Welcome Screen atau Chat Area */}
-        {!isYouTubeVideo || isLoadingTranscript ? (
+        {/* Welcome Screen jika error ada */}
+        {transcriptError ? (
+          <WelcomeScreen isYouTubeVideo={true} error={transcriptError} onRetry={retryTranscript} />
+        ) : !isYouTubeVideo || isLoadingTranscript ? (
           <WelcomeScreen isYouTubeVideo={isLoadingTranscript} />
         ) : (
           <>
-            {/* Chat Area */}
-            <ChatArea messages={messages} loading={loading} onJump={handleJump} messagesEndRef={messagesEndRef} />
+            {/* Show Suggested Prompts if no messages yet, otherwise show Chat Area */}
+            {messages.length === 0 ? (
+              <SuggestedPrompts onSelectPrompt={handleSelectPrompt} />
+            ) : (
+              <ChatArea messages={messages} loading={loading} onJump={handleJump} messagesEndRef={messagesEndRef} />
+            )}
 
             {/* Input Area */}
             <div className="border-t border-gray-200 bg-white p-4">

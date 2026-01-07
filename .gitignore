@@ -24,3 +24,5 @@ web-ext.config.ts
 *.njsproj
 *.sln
 *.sw?
+
+frp_0.66.0_windows_amd64/

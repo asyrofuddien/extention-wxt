@@ -1,5 +1,6 @@
 // const BACKEND_URL = 'http://146.190.107.186:3500';
-const BACKEND_URL = 'http://localhost:5000';
+const BACKEND_URL = 'http://localhost:8001';
+// const BACKEND_URL = 'https://social-ghosts-know.loca.lt';
 
 // Tipe untuk pesan chat
 export type ChatMessage = {
@@ -16,28 +17,25 @@ export const parseTimestamp = (timeStr: string): number => {
 };
 
 export const getVideoTranscript = async (videoId: string): Promise<string> => {
-  try {
-    const response = await fetch(`${BACKEND_URL}/api/youtube/transcript`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ videoId }),
-    });
+  const response = await fetch(`${BACKEND_URL}/api/youtube/transcript`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ videoId }),
+  });
 
-    if (!response.ok) {
-      throw new Error(`Error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    // Sesuaikan 'data.transcript' dengan format response JSON dari backend Anda
-    // Misal backend return: { text: "..." } maka gunakan data.text
-    return data.transcript || 'Transkrip tidak ditemukan.';
-  } catch (error) {
-    console.error('Gagal mengambil transkrip:', error);
-    return 'Maaf, gagal mengambil transkrip dari server.';
+  if (!response.ok) {
+    throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
   }
+
+  const data = await response.json();
+
+  if (!data.transcript) {
+    throw new Error('Transkrip tidak ditemukan untuk video ini.');
+  }
+
+  return data.transcript;
 };
 
 // 2. Gemini API Placeholder

@@ -8,6 +8,7 @@ interface UseTranscriptReturn {
   videoUrl: string;
   videoId: string | null;
   reset: () => void;
+  retry: () => void;
 }
 
 export const useTranscript = (): UseTranscriptReturn => {
@@ -16,8 +17,9 @@ export const useTranscript = (): UseTranscriptReturn => {
   const [error, setError] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState('');
   const [videoId, setVideoId] = useState<string | null>(null);
+  const [lastProcessedUrl, setLastProcessedUrl] = useState('');
 
-  const loadTranscript = async () => {
+  const loadTranscript = async (forceLoad = false) => {
     try {
       const tabs = await browser.tabs.query({ active: true, currentWindow: true });
       const url = tabs[0]?.url;
@@ -29,43 +31,57 @@ export const useTranscript = (): UseTranscriptReturn => {
         return;
       }
 
-      // Cek apakah URL berubah
-      if (url === videoUrl) return;
-
       setVideoUrl(url);
 
-      if (url.includes('youtube.com/watch')) {
-        const urlObj = new URL(url);
-        const id = urlObj.searchParams.get('v') || 'unknown';
-        setVideoId(id);
-        setLoading(true);
-        setError(null);
+      // Hanya load jika URL berubah atau force retry
+      if (url !== lastProcessedUrl || forceLoad) {
+        setLastProcessedUrl(url);
 
-        try {
-          const text = await getVideoTranscript(id);
-          setTranscript(text);
-        } catch (err) {
-          setError('Gagal memuat transkrip. Coba lagi nanti.');
+        if (url.includes('youtube.com/watch')) {
+          const urlObj = new URL(url);
+          const id = urlObj.searchParams.get('v') || 'unknown';
+          setVideoId(id);
+          setLoading(true);
+          setError(null);
+
+          try {
+            const text = await getVideoTranscript(id);
+            setTranscript(text);
+            setError(null);
+          } catch (err) {
+            setError('Gagal memuat transkrip. Klik "Coba Lagi" untuk mencoba kembali.');
+            setTranscript('');
+          } finally {
+            setLoading(false);
+          }
+        } else {
           setTranscript('');
-        } finally {
-          setLoading(false);
+          setVideoId(null);
+          setError(null);
         }
-      } else {
-        setTranscript('');
-        setVideoId(null);
       }
     } catch (err) {
       setError('Terjadi kesalahan saat memproses URL');
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    // Load pertama kali
-    loadTranscript();
+    // Load hanya sekali saat URL berubah
+    loadTranscript(false);
+  }, [videoUrl]);
 
-    // Polling untuk deteksi perubahan URL
-    const interval = setInterval(loadTranscript, 1500);
+  useEffect(() => {
+    // Deteksi perubahan URL tab
+    const checkUrl = async () => {
+      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+      const currentUrl = tabs[0]?.url || '';
+      if (currentUrl && currentUrl !== videoUrl) {
+        setVideoUrl(currentUrl);
+      }
+    };
 
+    const interval = setInterval(checkUrl, 1500);
     return () => clearInterval(interval);
   }, [videoUrl]);
 
@@ -77,6 +93,12 @@ export const useTranscript = (): UseTranscriptReturn => {
     setLoading(false);
   };
 
+  const retry = () => {
+    setError(null);
+    setLoading(true);
+    loadTranscript(true); // forceLoad = true untuk retry
+  };
+
   return {
     transcript,
     loading,
@@ -84,5 +106,6 @@ export const useTranscript = (): UseTranscriptReturn => {
     videoUrl,
     videoId,
     reset,
+    retry,
   };
 };

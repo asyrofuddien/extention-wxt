@@ -36,56 +36,23 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ messages, loading, onJump, m
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-4" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div className="flex-1 overflow-y-auto flex flex-col gap-3 p-4">
       {messages.length === 0 ? (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: '100%',
-            textAlign: 'center',
-          }}
-        >
-          <p style={{ color: '#999', fontSize: '14px' }}>Mulai percakapan dengan AI tentang video ini...</p>
+        <div className="flex items-center justify-center h-full text-center">
+          <p className="text-gray-500 text-sm">Mulai percakapan dengan AI tentang video ini...</p>
         </div>
       ) : (
         messages.map((msg, idx) => (
-          <div key={idx} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
+          <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             {msg.role === 'user' ? (
               // User Message Bubble
-              <div
-                style={{
-                  backgroundColor: '#2563eb',
-                  color: 'white',
-                  borderRadius: '24px',
-                  borderBottomRightRadius: '4px',
-                  padding: '12px 16px',
-                  maxWidth: '85%',
-                  wordWrap: 'break-word',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                  fontSize: '14px',
-                }}
-              >
-                <p style={{ margin: 0, lineHeight: 1.5 }}>{msg.content}</p>
+              <div className="bg-blue-600 text-white rounded-3xl rounded-tr-sm px-4 py-3 max-w-xs lg:max-w-md break-words shadow-md">
+                <p className="text-sm leading-relaxed">{msg.content}</p>
               </div>
             ) : (
               // AI Message Bubble
-              <div
-                style={{
-                  backgroundColor: 'white',
-                  color: '#111',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '24px',
-                  borderBottomLeftRadius: '4px',
-                  padding: '12px 16px',
-                  maxWidth: '85%',
-                  wordWrap: 'break-word',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                  fontSize: '14px',
-                }}
-              >
-                <p style={{ margin: 0, lineHeight: 1.5 }}>{renderMessageContent(msg.content)}</p>
+              <div className="bg-white border border-gray-300 text-gray-900 rounded-3xl rounded-bl-sm px-4 py-3 max-w-xs lg:max-w-md break-words shadow-md">
+                <p className="text-sm leading-relaxed">{renderMessageContent(msg.content)}</p>
               </div>
             )}
           </div>
@@ -94,7 +61,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ messages, loading, onJump, m
 
       {/* Loading Bubble */}
       {loading && (
-        <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+        <div className="flex justify-start">
           <LoadingBubble speed="normal" />
         </div>
       )}

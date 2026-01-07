@@ -19,41 +19,13 @@ export const InputArea: React.FC<InputAreaProps> = ({ input, loading, disabled, 
   };
 
   return (
-    <div
-      style={{
-        borderTop: '1px solid #e5e7eb',
-        paddingTop: '16px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
-      }}
-    >
+    <div className="border-t border-gray-200 pt-4 flex flex-col gap-3">
       {/* Reset Button - subtle */}
       {!disabled && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <div className="flex justify-end">
           <button
             onClick={onReset}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '12px',
-              color: '#666',
-              backgroundColor: 'transparent',
-              border: 'none',
-              padding: '6px 10px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#333';
-              e.currentTarget.style.backgroundColor = '#f3f4f6';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = '#666';
-              e.currentTarget.style.backgroundColor = 'transparent';
-            }}
+            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-2.5 py-1.5 rounded-md transition-all"
             title="Reset percakapan dan mulai dari awal"
           >
             <RotateCcw size={14} />
@@ -63,7 +35,7 @@ export const InputArea: React.FC<InputAreaProps> = ({ input, loading, disabled, 
       )}
 
       {/* Input Section */}
-      <div style={{ display: 'flex', gap: '8px' }}>
+      <div className="flex gap-2">
         <input
           type="text"
           value={input}
@@ -71,39 +43,12 @@ export const InputArea: React.FC<InputAreaProps> = ({ input, loading, disabled, 
           onKeyDown={handleKeyDown}
           placeholder={disabled ? 'Buka video YouTube terlebih dahulu...' : 'Tanya tentang video...'}
           disabled={disabled || loading}
-          style={{
-            flex: 1,
-            border: disabled || loading ? '1px solid #e5e7eb' : '1px solid #d1d5db',
-            borderRadius: '16px',
-            padding: '10px 16px',
-            fontSize: '14px',
-            backgroundColor: disabled || loading ? '#f9fafb' : 'white',
-            color: disabled || loading ? '#9ca3af' : '#111',
-            outline: 'none',
-            transition: 'all 0.2s',
-          }}
-          onFocus={(e) =>
-            !disabled && !loading && (e.currentTarget.style.boxShadow = '0 0 0 2px rgba(220, 38, 38, 0.1)')
-          }
-          onBlur={(e) => (e.currentTarget.style.boxShadow = 'none')}
+          className="flex-1 border rounded-2xl px-4 py-2.5 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-200 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-400"
         />
         <button
           onClick={onSend}
           disabled={loading || disabled}
-          style={{
-            backgroundColor: loading || disabled ? '#d1d5db' : '#dc2626',
-            color: 'white',
-            border: 'none',
-            padding: '10px 12px',
-            borderRadius: '16px',
-            cursor: loading || disabled ? 'not-allowed' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.2s',
-          }}
-          onMouseEnter={(e) => !loading && !disabled && (e.currentTarget.style.backgroundColor = '#b91c1c')}
-          onMouseLeave={(e) => !loading && !disabled && (e.currentTarget.style.backgroundColor = '#dc2626')}
+          className="bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white px-3 py-2.5 rounded-2xl flex items-center justify-center transition-all disabled:cursor-not-allowed"
           title="Kirim pesan (atau tekan Enter)"
         >
           <Send size={20} />
@@ -111,11 +56,7 @@ export const InputArea: React.FC<InputAreaProps> = ({ input, loading, disabled, 
       </div>
 
       {/* Loading Status */}
-      {loading && (
-        <p style={{ fontSize: '12px', color: '#999', textAlign: 'center', animation: 'pulse 2s infinite' }}>
-          Menunggu respons AI...
-        </p>
-      )}
+      {loading && <p className="text-xs text-gray-400 text-center animate-pulse">Menunggu respons AI...</p>}
     </div>
   );
 };
