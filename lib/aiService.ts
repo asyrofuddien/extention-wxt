@@ -16,13 +16,13 @@ export const parseTimestamp = (timeStr: string): number => {
   return 0;
 };
 
-export const getVideoTranscript = async (videoId: string): Promise<string> => {
+export const getVideoTranscript = async (videoId: string, language: string = 'id'): Promise<string> => {
   const response = await fetch(`${BACKEND_URL}/api/youtube/transcript`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ videoId }),
+    body: JSON.stringify({ videoId, lang: language }),
   });
 
   if (!response.ok) {
@@ -55,7 +55,7 @@ export const askAi = async (
       body: JSON.stringify({
         question,
         context: truncatedContext,
-        conversationHistory,
+        conversationHistory: [],
       }),
     });
 

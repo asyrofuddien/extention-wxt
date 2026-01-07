@@ -1,5 +1,6 @@
 interface CachedTranscript {
   videoId: string;
+  language: string;
   transcript: string;
   timestamp: number;
 }
@@ -8,9 +9,9 @@ const MAX_CACHED_TRANSCRIPTS = 5;
 const CACHE_PREFIX = 'transcript_cache_';
 const CACHE_INDEX_KEY = 'transcript_cache_index';
 
-export const getTranscriptCache = (videoId: string): string | null => {
+export const getTranscriptCache = (videoId: string, language: string = 'id'): string | null => {
   try {
-    const key = `${CACHE_PREFIX}${videoId}`;
+    const key = `${CACHE_PREFIX}${videoId}_${language}`;
     const cached = localStorage.getItem(key);
     if (cached) {
       const data = JSON.parse(cached) as CachedTranscript;
@@ -22,24 +23,25 @@ export const getTranscriptCache = (videoId: string): string | null => {
   return null;
 };
 
-export const saveTranscriptCache = (videoId: string, transcript: string) => {
+export const saveTranscriptCache = (videoId: string, transcript: string, language: string = 'id') => {
   try {
-    const key = `${CACHE_PREFIX}${videoId}`;
+    const key = `${CACHE_PREFIX}${videoId}_${language}`;
     const data: CachedTranscript = {
       videoId,
+      language,
       transcript,
       timestamp: Date.now(),
     };
     localStorage.setItem(key, JSON.stringify(data));
 
     // Update index
-    updateCacheIndex(videoId);
+    updateCacheIndex(`${videoId}_${language}`);
   } catch (error) {
     console.error('Error saving transcript cache:', error);
   }
 };
 
-const updateCacheIndex = (videoId: string) => {
+const updateCacheIndex = (cacheKey: string) => {
   try {
     let index: string[] = [];
     const cached = localStorage.getItem(CACHE_INDEX_KEY);
@@ -47,11 +49,11 @@ const updateCacheIndex = (videoId: string) => {
       index = JSON.parse(cached);
     }
 
-    // Hapus videoId kalo sudah ada (untuk update position)
-    index = index.filter((id) => id !== videoId);
+    // Hapus cacheKey kalo sudah ada (untuk update position)
+    index = index.filter((id) => id !== cacheKey);
 
-    // Tambah videoId di awal (most recent)
-    index.unshift(videoId);
+    // Tambah cacheKey di awal (most recent)
+    index.unshift(cacheKey);
 
     // Jika lebih dari 5, hapus yang paling lama
     if (index.length > MAX_CACHED_TRANSCRIPTS) {
@@ -73,8 +75,8 @@ export const clearTranscriptCache = () => {
     const cached = localStorage.getItem(CACHE_INDEX_KEY);
     if (cached) {
       const index = JSON.parse(cached) as string[];
-      index.forEach((videoId) => {
-        const key = `${CACHE_PREFIX}${videoId}`;
+      index.forEach((cacheKey) => {
+        const key = `${CACHE_PREFIX}${cacheKey}`;
         localStorage.removeItem(key);
       });
     }

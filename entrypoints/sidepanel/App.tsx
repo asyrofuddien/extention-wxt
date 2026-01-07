@@ -5,6 +5,7 @@ import { WelcomeScreen } from './components/WelcomeScreen';
 import { ChatArea } from './components/ChatArea';
 import { InputArea } from './components/InputArea';
 import { SuggestedPrompts } from './components/SuggestedPrompts';
+import { LanguageSelector } from './components/LanguageSelector';
 import { useTranscript } from './hooks/useTranscript';
 import { useChatHistory } from './hooks/useChatHistory';
 
@@ -21,9 +22,11 @@ function App() {
     loading: transcriptLoading,
     videoUrl,
     videoId,
+    language,
     error: transcriptError,
     reset: resetTranscript,
     retry: retryTranscript,
+    setLanguage,
   } = useTranscript();
 
   // Hook untuk manage per-video chat history
@@ -90,9 +93,12 @@ function App() {
     <div className="flex flex-col h-screen bg-white">
       {/* Header */}
       <div className="border-b border-gray-200 bg-gradient-to-r from-red-600 to-orange-600 px-4 py-3.5 shadow-sm">
-        <h1 className="text-lg font-bold text-white flex items-center gap-2">
-          <Play className="w-5 h-5" /> Aforsy - YouTube AI Sidekick
-        </h1>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-lg font-bold text-white flex items-center gap-2">
+            <Play className="w-5 h-5" /> Aforsy - YouTube AI Sidekick
+          </h1>
+          <LanguageSelector currentLang={language} onLanguageChange={setLanguage} />
+        </div>
         <p className="text-red-100 text-xs mt-1">Your smart video companion</p>
       </div>
 
