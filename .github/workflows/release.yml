@@ -110,35 +110,10 @@ jobs:
           # Rename the zip file
           mv "$ZIP_FILE" "$RENAMED_ZIP"
 
-          # Create release notes
-          RELEASE_NOTES="## 🎥 Aforsy - YouTube AI Sidekick
-          
-**Asisten AI Cerdas untuk Analisis Video YouTube**
-
-### ✨ Fitur Utama
-- 🤖 **Analisis Transkrip AI** - Ekstraksi poin penting secara otomatis
-- ⚡ **Smart Caching** - Optimalisasi performa dengan penyimpanan hingga 5 video
-- 🌍 **Multi-bahasa** - Dukungan Bahasa Indonesia, Inggris, dan lainnya
-- 💬 **Chat Persisten** - Riwayat diskusi terpisah untuk setiap video
-- ⏱️ **Timestamp Jump** - Navigasi cepat ke bagian video yang relevan
-
-### 📦 Instalasi Cepat
-1. Unduh \`aforsy-youtube-sidekick-v.${{ steps.version.outputs.VERSION }}.zip\`
-2. Ekstrak ke folder lokal Anda
-3. Buka \`chrome://extensions/\`
-4. Aktifkan **Developer mode** (pojok kanan atas)
-5. Klik **Load unpacked** dan pilih folder hasil ekstrak
-
-### 📖 Panduan Lengkap
-Lihat [README.md](https://github.com/asyrofuddien/extention-wxt/blob/main/README.md) untuk instruksi detail.
-
----
-**Dikembangkan oleh Muhammad Asyrofuddien**"
-
           # Create release only if it doesn't exist
           gh release create v.${{ steps.version.outputs.VERSION }} \
             --title "Release v.${{ steps.version.outputs.VERSION }}" \
-            --notes "$RELEASE_NOTES" 2>/dev/null || true
+            --notes "Aforsy - YouTube AI Sidekick Extension v.${{ steps.version.outputs.VERSION }}" 2>/dev/null || true
 
           # Upload/replace renamed file
           gh release upload v.${{ steps.version.outputs.VERSION }} \
