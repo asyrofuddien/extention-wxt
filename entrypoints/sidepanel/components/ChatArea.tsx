@@ -14,25 +14,62 @@ interface ChatAreaProps {
 }
 
 export const ChatArea: React.FC<ChatAreaProps> = ({ messages, loading, onJump, messagesEndRef }) => {
-  // Regex untuk mendeteksi timestamp
+  // Render message content dengan timestamp detection - simple & reliable
   const renderMessageContent = (text: string) => {
-    const timeRegex = /(\d{1,2}:\d{2}(?::\d{2})?)/g;
-    const parts = text.split(timeRegex);
+    // Match format: [HH:MM:SS], HH:MM:SS, dan range [HH:MM:SS] - [HH:MM:SS]
+    const timeRegex = /\[?(\d{1,2}:\d{2}(?::\d{2})?)\]?(?:\s*-\s*\[?(\d{1,2}:\d{2}(?::\d{2})?)\]?)?/g;
 
-    return parts.map((part, index) => {
-      if (timeRegex.test(part)) {
-        return (
+    let lastIndex = 0;
+    const parts: (string | React.ReactElement)[] = [];
+    let match;
+
+    while ((match = timeRegex.exec(text)) !== null) {
+      // Add text sebelum timestamp
+      if (match.index > lastIndex) {
+        parts.push(text.substring(lastIndex, match.index));
+      }
+
+      const firstTimestamp = match[1];
+      const secondTimestamp = match[2];
+
+      if (firstTimestamp) {
+        // Button untuk first timestamp
+        parts.push(
           <button
-            key={index}
-            onClick={() => onJump(part)}
-            className="inline-block text-blue-600 hover:text-blue-700 hover:underline font-semibold bg-blue-100 hover:bg-blue-200 px-2 py-0.5 rounded transition-colors duration-200 mx-0.5"
+            key={`ts-${match.index}`}
+            onClick={() => onJump(firstTimestamp)}
+            className="inline-block text-blue-600 hover:text-blue-700 hover:underline font-semibold bg-blue-100 hover:bg-blue-200 px-2 py-0.5 rounded transition-colors duration-200 mx-0.5 hover:cursor-pointer"
           >
-            {part}
+            [{firstTimestamp}]
           </button>
         );
+
+        if (secondTimestamp) {
+          // Add " - " separator
+          parts.push(' - ');
+
+          // Button untuk second timestamp (range)
+          parts.push(
+            <button
+              key={`ts-${match.index}-2`}
+              onClick={() => onJump(secondTimestamp)}
+              className="inline-block text-blue-600 hover:text-blue-700 hover:underline font-semibold bg-blue-100 hover:bg-blue-200 px-2 py-0.5 rounded transition-colors duration-200 mx-0.5 hover:cursor-pointer"
+            >
+              [{secondTimestamp}]
+            </button>
+          );
+        }
       }
-      return <span key={index}>{part}</span>;
-    });
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Add remaining text
+    if (lastIndex < text.length) {
+      parts.push(text.substring(lastIndex));
+    }
+
+    return parts;
   };
 
   return (
@@ -50,7 +87,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ messages, loading, onJump, m
                 <p className="text-sm leading-relaxed">{msg.content}</p>
               </div>
             ) : (
-              // AI Message Bubble
+              // AI Message Bubble dengan timestamp button
               <div className="bg-white border border-gray-300 text-gray-900 rounded-3xl rounded-bl-sm px-4 py-3 max-w-xs lg:max-w-md break-words shadow-md">
                 <p className="text-sm leading-relaxed">{renderMessageContent(msg.content)}</p>
               </div>

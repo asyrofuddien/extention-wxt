@@ -6,11 +6,11 @@ import { ChatArea } from './components/ChatArea';
 import { InputArea } from './components/InputArea';
 import { SuggestedPrompts } from './components/SuggestedPrompts';
 import { useTranscript } from './hooks/useTranscript';
+import { useChatHistory } from './hooks/useChatHistory';
 
 type Message = ChatMessage;
 
 function App() {
-  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
@@ -26,30 +26,30 @@ function App() {
     retry: retryTranscript,
   } = useTranscript();
 
+  // Hook untuk manage per-video chat history
+  const { messages, setMessages, addMessage, clearHistory } = useChatHistory(videoId);
+
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  // Reset ketika video berubah
-  useEffect(() => {
-    setMessages([]);
-  }, [videoId]);
+  // Hapus: Reset ketika video berubah - sudah di-handle di useChatHistory
 
   // 2. Kirim Pesan ke AI
   const handleSend = async () => {
     if (!input.trim() || loading || !transcript) return;
 
     const userMsg = input;
-    setMessages((prev) => [...prev, { role: 'user', content: userMsg }]);
+    addMessage({ role: 'user', content: userMsg });
     setInput('');
     setLoading(true);
 
     try {
       const response = await askAi(userMsg, transcript, messages);
-      setMessages((prev) => [...prev, { role: 'system', content: response }]);
+      addMessage({ role: 'system', content: response });
     } catch (error) {
-      setMessages((prev) => [...prev, { role: 'system', content: 'Maaf, terjadi kesalahan. Coba lagi nanti.' }]);
+      addMessage({ role: 'system', content: 'Maaf, terjadi kesalahan. Coba lagi nanti.' });
     } finally {
       setLoading(false);
     }
@@ -76,7 +76,7 @@ function App() {
 
   // 4. Reset chat history saja
   const handleReset = () => {
-    setMessages([]);
+    clearHistory();
     setInput('');
   };
 

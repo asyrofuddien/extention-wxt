@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getVideoTranscript } from '../../../lib/aiService';
+import { getTranscriptCache, saveTranscriptCache } from '../lib/transcriptCache';
 
 interface UseTranscriptReturn {
   transcript: string;
@@ -44,10 +45,23 @@ export const useTranscript = (): UseTranscriptReturn => {
           setLoading(true);
           setError(null);
 
+          // Cek cache terlebih dahulu
+          const cachedTranscript = getTranscriptCache(id);
+          if (cachedTranscript && !forceLoad) {
+            // Gunakan transcript dari cache, jangan load dari backend
+            setTranscript(cachedTranscript);
+            setError(null);
+            setLoading(false);
+            return;
+          }
+
+          // Jika tidak ada di cache atau forceLoad, load dari backend
           try {
             const text = await getVideoTranscript(id);
             setTranscript(text);
             setError(null);
+            // Save ke cache setelah berhasil load dari backend
+            saveTranscriptCache(id, text);
           } catch (err) {
             setError('Gagal memuat transkrip. Klik "Coba Lagi" untuk mencoba kembali.');
             setTranscript('');

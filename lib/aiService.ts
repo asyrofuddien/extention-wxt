@@ -44,13 +44,17 @@ export const askAi = async (
   context: string,
   conversationHistory: ChatMessage[] = []
 ): Promise<string> => {
+  // Limit context ke 11500 characters
+  const maxContextLength = 11500;
+  const truncatedContext = context.length > maxContextLength ? context.substring(0, maxContextLength) + '...' : context;
+
   try {
     const response = await fetch(`${BACKEND_URL}/api/youtube/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         question,
-        context,
+        context: truncatedContext,
         conversationHistory,
       }),
     });
