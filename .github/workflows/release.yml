@@ -63,6 +63,7 @@ jobs:
         run: |
           gh release delete v.${{ steps.version.outputs.VERSION }} --yes || true
         continue-on-error: true
+        if: github.event_name == 'workflow_dispatch'
 
       - name: Create Release and Upload
         env:
@@ -74,12 +75,12 @@ jobs:
           # Rename the zip file
           mv "$ZIP_FILE" "$RENAMED_ZIP"
 
-          # Create release
+          # Create release only if it doesn't exist
           gh release create v.${{ steps.version.outputs.VERSION }} \
             --title "Release v.${{ steps.version.outputs.VERSION }}" \
-            --notes "Aforsy - YouTube AI Sidekick Extension v.${{ steps.version.outputs.VERSION }}" || true
+            --notes "Aforsy - YouTube AI Sidekick Extension v.${{ steps.version.outputs.VERSION }}" 2>/dev/null || true
 
-          # Upload renamed file
+          # Upload/replace renamed file
           gh release upload v.${{ steps.version.outputs.VERSION }} \
             "$RENAMED_ZIP" \
             --clobber
