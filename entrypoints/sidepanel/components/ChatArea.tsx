@@ -16,46 +16,17 @@ interface ChatAreaProps {
 }
 
 export const ChatArea: React.FC<ChatAreaProps> = ({ messages, videoTitle, loading, onJump, messagesEndRef }) => {
-  // Custom markdown component untuk handle timestamps dan styling
-  const markdownComponents = {
-    p: ({ node, ...props }: any) => <p className="mb-2 last:mb-0" {...props} />,
-    ul: ({ node, ...props }: any) => <ul className="list-disc list-inside mb-2 space-y-1" {...props} />,
-    ol: ({ node, ...props }: any) => <ol className="list-decimal list-inside mb-2 space-y-1" {...props} />,
-    li: ({ node, ...props }: any) => <li className="text-sm" {...props} />,
-    strong: ({ node, ...props }: any) => <strong className="font-bold" {...props} />,
-    em: ({ node, ...props }: any) => <em className="italic" {...props} />,
-    code: ({ node, inline, ...props }: any) =>
-      inline ? (
-        <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono" {...props} />
-      ) : (
-        <code className="block bg-muted p-2 rounded text-xs font-mono mb-2 overflow-x-auto" {...props} />
-      ),
-    blockquote: ({ node, ...props }: any) => (
-      <blockquote className="border-l-4 border-secondary pl-3 italic mb-2" {...props} />
-    ),
-    a: ({ node, ...props }: any) => (
-      <a className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer" {...props} />
-    ),
-  };
-
-  // Render message content dengan timestamp detection dan markdown
-  const renderMessageContent = (text: string) => {
-    // Match format: [HH:MM:SS], HH:MM:SS, dan range [HH:MM:SS] - [HH:MM:SS]
+  // Helper untuk render timestamp buttons inline dari string
+  const renderTimestampsInline = (text: string): React.ReactNode[] => {
     const timeRegex = /\[?(\d{1,2}:\d{2}(?::\d{2})?)\]?(?:\s*-\s*\[?(\d{1,2}:\d{2}(?::\d{2})?)\]?)?/g;
-
     let lastIndex = 0;
-    const parts: (string | React.ReactElement)[] = [];
+    const parts: React.ReactNode[] = [];
     let match;
 
     while ((match = timeRegex.exec(text)) !== null) {
-      // Add text sebelum timestamp (render sebagai markdown)
+      // Add text sebelum timestamp
       if (match.index > lastIndex) {
-        const textPart = text.substring(lastIndex, match.index);
-        parts.push(
-          <ReactMarkdown key={`md-${lastIndex}`} components={markdownComponents}>
-            {textPart}
-          </ReactMarkdown>
-        );
+        parts.push(text.substring(lastIndex, match.index));
       }
 
       const firstTimestamp = match[1];
@@ -66,11 +37,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ messages, videoTitle, loadin
         parts.push(
           <button
             key={`ts-${match.index}`}
-            onClick={() => {
-              console.log('Jump to:', firstTimestamp);
-              onJump(firstTimestamp);
-            }}
-            className="inline-block bg-secondary text-secondary-foreground hover:bg-secondary/80 px-2 py-1 rounded text-xs font-medium cursor-pointer transition-colors flex-shrink-0"
+            onClick={() => onJump(firstTimestamp)}
+            className="inline bg-secondary text-secondary-foreground hover:bg-secondary/80 px-2 py-0.5 rounded text-xs font-medium cursor-pointer transition-colors mx-0.5"
             type="button"
           >
             [{firstTimestamp}]
@@ -78,18 +46,12 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ messages, videoTitle, loadin
         );
 
         if (secondTimestamp) {
-          // Add " - " separator
           parts.push(' - ');
-
-          // Button untuk second timestamp (range)
           parts.push(
             <button
               key={`ts-${match.index}-2`}
-              onClick={() => {
-                console.log('Jump to:', secondTimestamp);
-                onJump(secondTimestamp);
-              }}
-              className="inline-block bg-secondary text-secondary-foreground hover:bg-secondary/80 px-2 py-1 rounded text-xs font-medium cursor-pointer transition-colors flex-shrink-0"
+              onClick={() => onJump(secondTimestamp)}
+              className="inline bg-secondary text-secondary-foreground hover:bg-secondary/80 px-2 py-0.5 rounded text-xs font-medium cursor-pointer transition-colors mx-0.5"
               type="button"
             >
               [{secondTimestamp}]
@@ -101,17 +63,80 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ messages, videoTitle, loadin
       lastIndex = match.index + match[0].length;
     }
 
-    // Add remaining text (render sebagai markdown)
+    // Add remaining text
     if (lastIndex < text.length) {
-      const textPart = text.substring(lastIndex);
-      parts.push(
-        <ReactMarkdown key={`md-${lastIndex}`} components={markdownComponents}>
-          {textPart}
-        </ReactMarkdown>
-      );
+      parts.push(text.substring(lastIndex));
     }
 
-    return parts;
+    return parts.length > 0 ? parts : [text];
+  };
+
+  // Recursive function untuk process children dan handle timestamps
+  const processChildren = (children: React.ReactNode): React.ReactNode => {
+    if (typeof children === 'string') {
+      // Jika string, parse timestamps
+      return <>{renderTimestampsInline(children)}</>;
+    }
+
+    if (Array.isArray(children)) {
+      // Jika array, process each child
+      return children.map((child, idx) => <React.Fragment key={idx}>{processChildren(child)}</React.Fragment>);
+    }
+
+    if (React.isValidElement(children)) {
+      // Jika React element, clone dan process children-nya
+      const element = children as React.ReactElement<any>;
+      if (element.props.children) {
+        return React.cloneElement(element, {
+          ...element.props,
+          children: processChildren(element.props.children),
+        });
+      }
+      return children;
+    }
+
+    // Untuk tipe lain (number, null, undefined), return as-is
+    return children;
+  };
+
+  // Custom markdown component untuk handle timestamps dan styling
+  const markdownComponents = {
+    p: ({ node, children, ...props }: any) => (
+      <p className="mb-2 last:mb-0" {...props}>
+        {processChildren(children)}
+      </p>
+    ),
+    ul: ({ node, ...props }: any) => <ul className="list-disc list-inside mb-2 space-y-1" {...props} />,
+    ol: ({ node, ...props }: any) => <ol className="list-decimal list-inside mb-2 space-y-1" {...props} />,
+    li: ({ node, children, ...props }: any) => (
+      <li className="text-sm" {...props}>
+        {processChildren(children)}
+      </li>
+    ),
+    strong: ({ node, children, ...props }: any) => (
+      <strong className="font-bold" {...props}>
+        {processChildren(children)}
+      </strong>
+    ),
+    em: ({ node, children, ...props }: any) => (
+      <em className="italic" {...props}>
+        {processChildren(children)}
+      </em>
+    ),
+    code: ({ node, inline, ...props }: any) =>
+      inline ? (
+        <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono" {...props} />
+      ) : (
+        <code className="block bg-muted p-2 rounded text-xs font-mono mb-2 overflow-x-auto" {...props} />
+      ),
+    blockquote: ({ node, children, ...props }: any) => (
+      <blockquote className="border-l-4 border-secondary pl-3 italic mb-2" {...props}>
+        {processChildren(children)}
+      </blockquote>
+    ),
+    a: ({ node, ...props }: any) => (
+      <a className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer" {...props} />
+    ),
   };
 
   return (
@@ -131,10 +156,10 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ messages, videoTitle, loadin
                   <p className="text-sm leading-relaxed">{msg.content}</p>
                 </div>
               ) : (
-                // AI Message Bubble dengan markdown + timestamp button
+                // AI Message Bubble dengan markdown + timestamp button inline
                 <div className="bg-popover border border-border text-foreground rounded-3xl rounded-bl-sm px-4 py-3 max-w-xs lg:max-w-md shadow-md">
-                  <div className="text-sm leading-relaxed flex flex-wrap items-start gap-1">
-                    {renderMessageContent(msg.content)}
+                  <div className="text-sm leading-relaxed">
+                    <ReactMarkdown components={markdownComponents}>{msg.content}</ReactMarkdown>
                   </div>
                 </div>
               )}
