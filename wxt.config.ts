@@ -20,7 +20,6 @@ export default defineConfig({
     side_panel: {
       default_path: 'entrypoints/sidepanel/index.html',
     },
-    modules: ['@wxt-dev/module-react'],
     vite: () => ({
       plugins: [tailwindcss()],
       resolve: {

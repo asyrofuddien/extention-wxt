@@ -35,7 +35,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ isYouTubeVideo, er
 
           {/* Help Text */}
           <p className="text-xs text-destructive/70 mt-6">
-            Pastikan Anda sedang menonton video YouTube yang memiliki transkrip
+            Pastikan Anda sedang menonton video YouTube yang memiliki transcript
           </p>
         </div>
       </div>

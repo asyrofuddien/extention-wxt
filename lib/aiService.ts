@@ -1,6 +1,6 @@
 // const BACKEND_URL = 'http://146.190.107.186:3500';
-// const BACKEND_URL = 'http://localhost:8001';
-const BACKEND_URL = 'http://146.190.107.186:9000';
+const BACKEND_URL = 'http://localhost:8001';
+// const BACKEND_URL = 'http://146.190.107.186:9000';
 // const BACKEND_URL = 'https://social-ghosts-know.loca.lt';
 
 // Tipe untuk pesan chat
@@ -22,6 +22,11 @@ export interface TranscriptResponse {
   title?: string;
 }
 
+export interface TranscriptError extends Error {
+  errorCode?: string;
+  statusCode?: number;
+}
+
 export const getVideoTranscript = async (videoId: string, language: string = 'id'): Promise<TranscriptResponse> => {
   const response = await fetch(`${BACKEND_URL}/api/youtube/transcript`, {
     method: 'POST',
@@ -31,14 +36,20 @@ export const getVideoTranscript = async (videoId: string, language: string = 'id
     body: JSON.stringify({ videoId, lang: language }),
   });
 
-  if (!response.ok) {
-    throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
-  }
-
   const data = await response.json();
 
+  // Handle error responses from backend
+  if (!response.ok || !data.status) {
+    const error: TranscriptError = new Error(data.error || 'Gagal memuat transkrip');
+    error.errorCode = data.errorCode || 'UNKNOWN_ERROR';
+    error.statusCode = response.status;
+    throw error;
+  }
+
   if (!data.transcript) {
-    throw new Error('Transkrip tidak ditemukan untuk video ini.');
+    const error: TranscriptError = new Error('Transkrip tidak ditemukan untuk video ini.');
+    error.errorCode = 'NO_TRANSCRIPT';
+    throw error;
   }
 
   return {

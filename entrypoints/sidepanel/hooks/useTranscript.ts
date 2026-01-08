@@ -78,7 +78,36 @@ export const useTranscript = (): UseTranscriptReturn => {
             // Save ke cache setelah berhasil load dari backend (include title)
             saveTranscriptCache(id, response.transcript, language, response.title || '');
           } catch (err) {
-            setError('Gagal memuat transkrip. Klik "Coba Lagi" untuk mencoba kembali.');
+            // Parse error to get specific error code and message
+            let errorMessage = 'Gagal memuat transkrip. Klik "Coba Lagi" untuk mencoba kembali.';
+
+            if (err instanceof Error) {
+              const errorCode = (err as any).errorCode;
+
+              // Map error codes to user-friendly messages
+              switch (errorCode) {
+                case 'NO_SUBTITLE':
+                  errorMessage =
+                    'Video ini tidak memiliki transcript. Silahkan pilih video lain yang memiliki transcript.';
+                  break;
+                case 'NO_SUBTITLE_URL':
+                  errorMessage = 'Gagal mengakses transcript video. Silahkan coba lagi atau pilih video lain.';
+                  break;
+                case 'SUBTITLE_FETCH_FAILED':
+                  errorMessage = 'Gagal mengunduh transcript. Silahkan coba lagi nanti.';
+                  break;
+                case 'METADATA_TOO_LARGE':
+                  errorMessage = 'Video ini terlalu kompleks untuk diproses. Silahkan coba video lain.';
+                  break;
+                case 'NO_TRANSCRIPT':
+                  errorMessage = 'Transcript tidak ditemukan untuk video ini. Silahkan coba video lain.';
+                  break;
+                default:
+                  errorMessage = err.message || 'Gagal memuat transcript. Klik "Coba Lagi" untuk mencoba kembali.';
+              }
+            }
+
+            setError(errorMessage);
             setTranscript('');
           } finally {
             setLoading(false);
