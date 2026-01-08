@@ -26,6 +26,7 @@ function App() {
   const {
     transcript,
     title,
+    durationMinutes,
     loading: transcriptLoading,
     videoUrl,
     videoId,
@@ -87,7 +88,7 @@ function App() {
     setLoading(true);
 
     try {
-      const response = await askAi(userMsg, transcript, messages);
+      const response = await askAi(userMsg, transcript, messages, durationMinutes);
       addMessage({ role: 'system', content: response });
     } catch (error) {
       addMessage({ role: 'system', content: 'Maaf, terjadi kesalahan. Coba lagi nanti.' });

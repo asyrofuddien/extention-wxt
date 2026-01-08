@@ -7,20 +7,52 @@
 
 /* Custom scrollbar with theme colors */
 .overflow-y-auto::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .overflow-y-auto::-webkit-scrollbar-track {
-  background: var(--background);
+  background: transparent;
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 4px;
+  background: var(--primary);
+  border-radius: 3px;
+  cursor: pointer;
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: var(--ring);
+  cursor: pointer;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:active {
+  background: var(--ring);
+  cursor: grabbing;
+}
+
+/* Thin scrollbar for textarea */
+textarea::-webkit-scrollbar {
+  width: 4px;
+}
+
+textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+textarea::-webkit-scrollbar-thumb {
   background: var(--primary);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--ring);
+  cursor: pointer;
+}
+
+textarea::-webkit-scrollbar-thumb:active {
+  background: var(--ring);
+  cursor: grabbing;
 }
 
 :root {

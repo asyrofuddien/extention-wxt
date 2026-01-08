@@ -20,6 +20,7 @@ export const parseTimestamp = (timeStr: string): number => {
 export interface TranscriptResponse {
   transcript: string;
   title?: string;
+  durationMinutes?: number;
 }
 
 export interface TranscriptError extends Error {
@@ -55,6 +56,7 @@ export const getVideoTranscript = async (videoId: string, language: string = 'id
   return {
     transcript: data.transcript,
     title: data.title || '',
+    durationMinutes: data.duration_minutes || 0,
   };
 };
 
@@ -62,7 +64,8 @@ export const getVideoTranscript = async (videoId: string, language: string = 'id
 export const askAi = async (
   question: string,
   context: string,
-  conversationHistory: ChatMessage[] = []
+  conversationHistory: ChatMessage[] = [],
+  durationMinutes: number = 0
 ): Promise<string> => {
   // Limit context ke 11500 characters
   const maxContextLength = 11500;
@@ -76,6 +79,7 @@ export const askAi = async (
         question,
         context: truncatedContext,
         conversationHistory: [],
+        duration_minutes: durationMinutes,
       }),
     });
 

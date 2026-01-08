@@ -5,6 +5,7 @@ import { getTranscriptCache, saveTranscriptCache } from '../lib/transcriptCache'
 interface UseTranscriptReturn {
   transcript: string;
   title: string;
+  durationMinutes: number;
   loading: boolean;
   error: string | null;
   videoUrl: string;
@@ -18,6 +19,7 @@ interface UseTranscriptReturn {
 export const useTranscript = (): UseTranscriptReturn => {
   const [transcript, setTranscript] = useState('');
   const [title, setTitle] = useState('');
+  const [durationMinutes, setDurationMinutes] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState('');
@@ -63,6 +65,7 @@ export const useTranscript = (): UseTranscriptReturn => {
             // Gunakan transcript dan title dari cache dengan loading animation brief
             setTranscript(cachedData.transcript);
             setTitle(cachedData.title || '');
+            setDurationMinutes(cachedData.durationMinutes || 0);
             setError(null);
             // Show loading state briefly even for cached transcripts (better UX)
             setTimeout(() => setLoading(false), 300);
@@ -74,9 +77,10 @@ export const useTranscript = (): UseTranscriptReturn => {
             const response = await getVideoTranscript(id, language);
             setTranscript(response.transcript);
             setTitle(response.title || '');
+            setDurationMinutes(response.durationMinutes || 0);
             setError(null);
-            // Save ke cache setelah berhasil load dari backend (include title)
-            saveTranscriptCache(id, response.transcript, language, response.title || '');
+            // Save ke cache setelah berhasil load dari backend (include title & durationMinutes)
+            saveTranscriptCache(id, response.transcript, language, response.title || '', response.durationMinutes || 0);
           } catch (err) {
             // Parse error to get specific error code and message
             let errorMessage = 'Gagal memuat transkrip. Klik "Coba Lagi" untuk mencoba kembali.';
@@ -172,6 +176,7 @@ export const useTranscript = (): UseTranscriptReturn => {
   const reset = () => {
     setTranscript('');
     setTitle('');
+    setDurationMinutes(0);
     setVideoUrl('');
     setVideoId(null);
     setError(null);
@@ -196,6 +201,7 @@ export const useTranscript = (): UseTranscriptReturn => {
   return {
     transcript,
     title,
+    durationMinutes,
     loading,
     error,
     videoUrl,
