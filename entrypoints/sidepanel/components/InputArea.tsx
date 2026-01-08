@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Send, RotateCcw, Eye, EyeOff, HelpCircle, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
@@ -14,8 +14,10 @@ interface InputAreaProps {
 
 export const InputArea: React.FC<InputAreaProps> = ({ input, loading, disabled, onInputChange, onSend, onReset }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [isRichMode, setIsRichMode] = useState(false); // Toggle between plain/rich mode
 
   // Close shortcuts popup with Escape key
   useEffect(() => {
@@ -31,6 +33,103 @@ export const InputArea: React.FC<InputAreaProps> = ({ input, loading, disabled, 
 
   // Check if input contains markdown syntax
   const hasMarkdown = /(\*\*|__|`|\*|_|#{1,6}\s|>\s|\d+\.\s|-\s|\[.*\]\(.*\))/.test(input);
+
+  // Convert markdown to simple HTML for rich mode display
+  const markdownToHtml = useCallback((text: string): string => {
+    if (!text) return '';
+    
+    let html = text
+      // Escape HTML first
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      // Bold **text** or __text__
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/__(.+?)__/g, '<strong>$1</strong>')
+      // Italic *text* or _text_
+      .replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>')
+      .replace(/(?<!_)_(?!_)(.+?)(?<!_)_(?!_)/g, '<em>$1</em>')
+      // Strikethrough ~~text~~
+      .replace(/~~(.+?)~~/g, '<s>$1</s>')
+      // Inline code `text`
+      .replace(/`([^`]+)`/g, '<code class="bg-muted px-1 rounded text-xs">$1</code>')
+      // Links [text](url)
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<span class="text-primary underline">$1</span>')
+      // Preserve line breaks
+      .replace(/\n/g, '<br>');
+    
+    return html;
+  }, []);
+
+  // Handle rich editor input
+  const handleEditorInput = useCallback(() => {
+    if (editorRef.current) {
+      // Get plain text from contenteditable
+      const text = editorRef.current.innerText || '';
+      onInputChange(text);
+    }
+  }, [onInputChange]);
+
+  // Handle paste in rich editor - paste as plain text
+  const handleEditorPaste = useCallback((e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const text = e.clipboardData.getData('text/plain');
+    document.execCommand('insertText', false, text);
+  }, []);
+
+  // Handle keydown in rich editor
+  const handleEditorKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    // Enter without shift = send
+    if (e.key === 'Enter' && !e.shiftKey && !loading) {
+      e.preventDefault();
+      onSend();
+      return;
+    }
+
+    // Markdown shortcuts (Ctrl/Cmd + key)
+    if (e.ctrlKey || e.metaKey) {
+      const selection = window.getSelection();
+      const selectedText = selection?.toString() || '';
+      
+      const wrapText = (before: string, after: string) => {
+        e.preventDefault();
+        document.execCommand('insertText', false, before + selectedText + after);
+      };
+
+      switch (e.key.toLowerCase()) {
+        case 'b':
+          wrapText('**', '**');
+          break;
+        case 'i':
+          wrapText('*', '*');
+          break;
+        case 'e':
+          wrapText('`', '`');
+          break;
+        case 'u':
+          wrapText('~~', '~~');
+          break;
+        case 'k':
+          e.preventDefault();
+          if (selectedText) {
+            document.execCommand('insertText', false, '[' + selectedText + '](url)');
+          } else {
+            document.execCommand('insertText', false, '[](url)');
+          }
+          break;
+      }
+    }
+  }, [loading, onSend]);
+
+  // Sync editor content when input changes externally or mode changes
+  useEffect(() => {
+    if (isRichMode && editorRef.current) {
+      const currentText = editorRef.current.innerText || '';
+      if (currentText !== input) {
+        editorRef.current.innerHTML = markdownToHtml(input);
+      }
+    }
+  }, [input, isRichMode, markdownToHtml]);
 
   // Helper to wrap selected text with markdown syntax
   const wrapSelection = (before: string, after: string) => {
@@ -128,40 +227,51 @@ export const InputArea: React.FC<InputAreaProps> = ({ input, loading, disabled, 
 
   return (
     <div className="flex flex-col gap-2">
-      {/* Markdown Preview - shows when preview enabled and has content */}
-      {showPreview && input.trim() && (
-        <div className="bg-card/50 border border-input rounded-xl px-4 py-2 text-sm max-h-[100px] overflow-y-auto">
-          <p className="text-[10px] text-muted-foreground mb-1 uppercase tracking-wide">Preview</p>
-          <div className="prose prose-sm max-w-none">
-            <ReactMarkdown>{input}</ReactMarkdown>
-          </div>
-        </div>
-      )}
 
       {/* Input Section with Reset and Send Buttons */}
       <div className="flex gap-2 items-end">
-        <textarea
-          ref={textareaRef}
-          value={input}
-          onChange={(e) => onInputChange(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={
-            disabled ? 'Buka video YouTube terlebih dahulu...' : 'Tanya tentang video... (supports **markdown**)'
-          }
-          disabled={disabled || loading}
-          rows={1}
-          className="flex-1 resize-none rounded-2xl bg-card border border-input px-4 py-2.5 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 min-h-[40px] max-h-[150px]"
-        />
-        {/* Preview Toggle Button - only show when markdown detected */}
-        {hasMarkdown && !disabled && (
+        {/* Plain Text Mode - Textarea */}
+        {!isRichMode && (
+          <textarea
+            ref={textareaRef}
+            value={input}
+            onChange={(e) => onInputChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={
+              disabled ? 'Buka video YouTube terlebih dahulu...' : 'Tanya tentang video... (supports **markdown**)'
+            }
+            disabled={disabled || loading}
+            rows={1}
+            className="flex-1 resize-none rounded-2xl bg-card border border-input px-4 py-2.5 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 min-h-[40px] max-h-[150px]"
+          />
+        )}
+
+        {/* Rich Mode - Contenteditable with live markdown rendering */}
+        {isRichMode && (
+          <div
+            ref={editorRef}
+            contentEditable={!disabled && !loading}
+            onInput={handleEditorInput}
+            onKeyDown={handleEditorKeyDown}
+            onPaste={handleEditorPaste}
+            data-placeholder={disabled ? 'Buka video YouTube terlebih dahulu...' : 'Tanya tentang video...'}
+            className={`flex-1 rounded-2xl bg-card border border-input px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-h-[40px] max-h-[150px] overflow-y-auto whitespace-pre-wrap break-words ${
+              disabled || loading ? 'cursor-not-allowed opacity-50' : ''
+            } ${!input ? 'empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground' : ''}`}
+            dangerouslySetInnerHTML={{ __html: markdownToHtml(input) }}
+          />
+        )}
+
+        {/* Rich Mode Toggle Button */}
+        {!disabled && (
           <Button
-            onClick={() => setShowPreview(!showPreview)}
+            onClick={() => setIsRichMode(!isRichMode)}
             size="icon"
-            variant={showPreview ? 'default' : 'outline'}
+            variant={isRichMode ? 'default' : 'outline'}
             className="rounded-full h-10 w-10 shrink-0"
-            title={showPreview ? 'Sembunyikan preview' : 'Tampilkan preview markdown'}
+            title={isRichMode ? 'Mode plain text' : 'Mode rich text (live preview)'}
           >
-            {showPreview ? <EyeOff size={18} /> : <Eye size={18} />}
+            {isRichMode ? <EyeOff size={18} /> : <Eye size={18} />}
           </Button>
         )}
         {!disabled && (
