@@ -17,6 +17,18 @@ export const InputArea: React.FC<InputAreaProps> = ({ input, loading, disabled, 
   const [showPreview, setShowPreview] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
 
+  // Close shortcuts popup with Escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showShortcuts) {
+        setShowShortcuts(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [showShortcuts]);
+
   // Check if input contains markdown syntax
   const hasMarkdown = /(\*\*|__|`|\*|_|#{1,6}\s|>\s|\d+\.\s|-\s|\[.*\]\(.*\))/.test(input);
 
