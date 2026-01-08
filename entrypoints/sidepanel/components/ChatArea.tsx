@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
 import { ChatMessage } from '../../../lib/aiService';
 import { LoadingBubble } from './LoadingBubble';
 
@@ -15,7 +16,29 @@ interface ChatAreaProps {
 }
 
 export const ChatArea: React.FC<ChatAreaProps> = ({ messages, videoTitle, loading, onJump, messagesEndRef }) => {
-  // Render message content dengan timestamp detection - simple & reliable
+  // Custom markdown component untuk handle timestamps dan styling
+  const markdownComponents = {
+    p: ({ node, ...props }: any) => <p className="mb-2 last:mb-0" {...props} />,
+    ul: ({ node, ...props }: any) => <ul className="list-disc list-inside mb-2 space-y-1" {...props} />,
+    ol: ({ node, ...props }: any) => <ol className="list-decimal list-inside mb-2 space-y-1" {...props} />,
+    li: ({ node, ...props }: any) => <li className="text-sm" {...props} />,
+    strong: ({ node, ...props }: any) => <strong className="font-bold" {...props} />,
+    em: ({ node, ...props }: any) => <em className="italic" {...props} />,
+    code: ({ node, inline, ...props }: any) =>
+      inline ? (
+        <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono" {...props} />
+      ) : (
+        <code className="block bg-muted p-2 rounded text-xs font-mono mb-2 overflow-x-auto" {...props} />
+      ),
+    blockquote: ({ node, ...props }: any) => (
+      <blockquote className="border-l-4 border-secondary pl-3 italic mb-2" {...props} />
+    ),
+    a: ({ node, ...props }: any) => (
+      <a className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer" {...props} />
+    ),
+  };
+
+  // Render message content dengan timestamp detection dan markdown
   const renderMessageContent = (text: string) => {
     // Match format: [HH:MM:SS], HH:MM:SS, dan range [HH:MM:SS] - [HH:MM:SS]
     const timeRegex = /\[?(\d{1,2}:\d{2}(?::\d{2})?)\]?(?:\s*-\s*\[?(\d{1,2}:\d{2}(?::\d{2})?)\]?)?/g;
@@ -25,9 +48,14 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ messages, videoTitle, loadin
     let match;
 
     while ((match = timeRegex.exec(text)) !== null) {
-      // Add text sebelum timestamp
+      // Add text sebelum timestamp (render sebagai markdown)
       if (match.index > lastIndex) {
-        parts.push(text.substring(lastIndex, match.index));
+        const textPart = text.substring(lastIndex, match.index);
+        parts.push(
+          <ReactMarkdown key={`md-${lastIndex}`} components={markdownComponents}>
+            {textPart}
+          </ReactMarkdown>
+        );
       }
 
       const firstTimestamp = match[1];
@@ -73,13 +101,17 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ messages, videoTitle, loadin
       lastIndex = match.index + match[0].length;
     }
 
-    // Add remaining text
+    // Add remaining text (render sebagai markdown)
     if (lastIndex < text.length) {
-      parts.push(text.substring(lastIndex));
+      const textPart = text.substring(lastIndex);
+      parts.push(
+        <ReactMarkdown key={`md-${lastIndex}`} components={markdownComponents}>
+          {textPart}
+        </ReactMarkdown>
+      );
     }
 
-    // Map parts to ensure proper rendering with keys
-    return parts.map((part, idx) => (typeof part === 'string' ? <span key={`text-${idx}`}>{part}</span> : part));
+    return parts;
   };
 
   return (
@@ -99,7 +131,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ messages, videoTitle, loadin
                   <p className="text-sm leading-relaxed">{msg.content}</p>
                 </div>
               ) : (
-                // AI Message Bubble dengan timestamp button
+                // AI Message Bubble dengan markdown + timestamp button
                 <div className="bg-popover border border-border text-foreground rounded-3xl rounded-bl-sm px-4 py-3 max-w-xs lg:max-w-md shadow-md">
                   <div className="text-sm leading-relaxed flex flex-wrap items-start gap-1">
                     {renderMessageContent(msg.content)}
