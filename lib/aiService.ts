@@ -67,8 +67,8 @@ export const askAi = async (
   conversationHistory: ChatMessage[] = [],
   durationMinutes: number = 0
 ): Promise<string> => {
-  // Limit context ke 11500 characters
-  const maxContextLength = 11500;
+  // Limit context ke 10000 characters
+  const maxContextLength = 10000;
   const truncatedContext = context.length > maxContextLength ? context.substring(0, maxContextLength) + '...' : context;
 
   try {
