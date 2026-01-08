@@ -151,9 +151,11 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ messages, videoTitle, loadin
           messages.map((msg, idx) => (
             <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.role === 'user' ? (
-                // User Message Bubble
+                // User Message Bubble dengan markdown
                 <div className="bg-primary text-primary-foreground rounded-3xl rounded-tr-sm px-4 py-3 max-w-xs lg:max-w-md wrap-break-word shadow-md">
-                  <p className="text-sm leading-relaxed">{msg.content}</p>
+                  <div className="text-sm leading-relaxed prose-invert">
+                    <ReactMarkdown components={markdownComponents}>{msg.content}</ReactMarkdown>
+                  </div>
                 </div>
               ) : (
                 // AI Message Bubble dengan markdown + timestamp button inline
