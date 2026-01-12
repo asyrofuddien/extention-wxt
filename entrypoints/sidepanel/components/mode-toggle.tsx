@@ -58,7 +58,7 @@ export function ModeToggle() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
+        <Button variant="secondary" size="icon">
           <CurrentIcon className={`h-[1.2rem] w-[1.2rem] ${currentTheme.iconClass}`} />
           <span className="sr-only">Toggle theme</span>
         </Button>
