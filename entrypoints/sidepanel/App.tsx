@@ -11,6 +11,7 @@ import { useChatHistory } from './hooks/useChatHistory';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { ModeToggle } from './components/mode-toggle';
 
 type Message = ChatMessage;
 
@@ -169,11 +170,16 @@ function App() {
       <div className={`transition-all duration-300 overflow-hidden ${showHeader ? 'h-auto' : 'h-0'}`}>
         <Card className="border-0 rounded-none bg-primary px-4 py-2.5 shadow-sm">
           <div className="flex items-center justify-between">
+            {/* Left: Logo & Title */}
             <div className="flex items-center gap-2">
               <img src="/icon/16.png" alt="Aforsy" className="w-6 h-6" />
               <h1 className="text-sm font-bold text-primary-foreground">Aforsy - YouTube AI Sidekick</h1>
             </div>
-            <LanguageSelector currentLang={language} onLanguageChange={setLanguage} videoId={videoId} />
+            {/* Right: Theme Toggle & Language Selector */}
+            <div className="flex items-center gap-2">
+              <ModeToggle />
+              <LanguageSelector currentLang={language} onLanguageChange={setLanguage} videoId={videoId} />
+            </div>
           </div>
         </Card>
         <Separator className="h-0.5" />

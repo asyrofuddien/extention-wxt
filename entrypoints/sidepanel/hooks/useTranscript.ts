@@ -186,7 +186,7 @@ export const useTranscript = (): UseTranscriptReturn => {
   const retry = () => {
     setError(null);
     setLoading(true);
-    loadTranscript(true); // forceLoad = true untuk retry
+    loadTranscript(true);
   };
 
   const setLanguage = (lang: string) => {
