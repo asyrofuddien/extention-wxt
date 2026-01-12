@@ -1,4 +1,4 @@
-import { Moon, Sun, Zap, Sparkles, Sunset, Palette } from 'lucide-react';
+import { Moon, Sun, Zap, Sparkles, Sunset, ScanLine } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -40,6 +40,12 @@ const themes = [
     icon: Sunset,
     iconClass: 'text-orange-500',
   },
+  {
+    name: 'cyber-punk',
+    label: 'Cyber Punk',
+    icon: ScanLine,
+    iconClass: 'text-pink-500',
+  },
 ];
 
 export function ModeToggle() {
@@ -52,9 +58,9 @@ export function ModeToggle() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
+        <Button variant="outline" className="flex items-center gap-2">
           <CurrentIcon className={`h-[1.2rem] w-[1.2rem] ${currentTheme.iconClass}`} />
-          <span className="sr-only">Toggle theme</span>
+          <span>{currentTheme.label}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
