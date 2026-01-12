@@ -1,5 +1,7 @@
 // const BACKEND_URL = 'http://146.190.107.186:3500';
-const BACKEND_URL = 'http://146.190.107.186:9000';
+// const BACKEND_URL = 'http://146.190.107.186:9000';
+const BACKEND_URL = 'http://146.190.107.186:8001';
+// const BACKEND_URL = 'http://localhost:8001';
 // const BACKEND_URL = 'http://146.190.107.186:9000';
 // const BACKEND_URL = 'https://social-ghosts-know.loca.lt';
 
@@ -87,5 +89,41 @@ export const askAi = async (
     return data.answer;
   } catch (error) {
     return 'Maaf, AI sedang tidak bisa menjawab saat ini.';
+  }
+};
+export interface AvailableLangsResponse {
+  status: boolean;
+  availableLangs: string[];
+}
+
+export const getAvailableLangs = async (
+  videoId: string | null,
+  lang: string = 'id',
+  cookie?: string
+): Promise<AvailableLangsResponse> => {
+  try {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (cookie) {
+      headers['Cookie'] = cookie;
+    }
+
+    const response = await fetch(`${BACKEND_URL}/api/youtube/available-langs`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ videoId, lang }),
+    });
+    const data = await response.json();
+    console.log('Available langs data:', data);
+    console.log('Video ID:', videoId);
+    // if (!response.ok || !data.status) {
+    //   throw new Error(data.error || 'Failed to fetch available languages');
+    // }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching available languages:', error);
+    return { status: false, availableLangs: [] };
   }
 };

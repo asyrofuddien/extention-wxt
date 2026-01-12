@@ -173,7 +173,7 @@ function App() {
               <img src="/icon/16.png" alt="Aforsy" className="w-6 h-6" />
               <h1 className="text-sm font-bold text-primary-foreground">Aforsy - YouTube AI Sidekick</h1>
             </div>
-            <LanguageSelector currentLang={language} onLanguageChange={setLanguage} />
+            <LanguageSelector currentLang={language} onLanguageChange={setLanguage} videoId={videoId} />
           </div>
         </Card>
         <Separator className="h-0.5" />
