@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 
 type Theme = 'dark' | 'light' | 'system' | string;
 
-const THEMES = ['dark', 'light', 'neo-brutalism', 'purple', 'sunset-horizon'] as const;
+const THEMES = ['dark', 'light', 'neo-brutalism', 'purple', 'sunset-horizon', 'cyber-punk'] as const;
 
 type ThemeProviderProps = {
   children: React.ReactNode;

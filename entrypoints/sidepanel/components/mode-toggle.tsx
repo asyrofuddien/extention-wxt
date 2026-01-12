@@ -58,9 +58,9 @@ export function ModeToggle() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="flex items-center gap-2">
+        <Button variant="outline" size="icon">
           <CurrentIcon className={`h-[1.2rem] w-[1.2rem] ${currentTheme.iconClass}`} />
-          <span>{currentTheme.label}</span>
+          <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
